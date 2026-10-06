@@ -5,35 +5,30 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * THÈME NOVA — fichier unique de charte.
+ * Couleurs, rayons et typographie de l'application occupants.
+ * Palette reprise de l'univers NOVA Serenity (Nova DESK / Nova Space).
+ * Pour appliquer une nouvelle charte : modifier uniquement les variables :root ci-dessous
+ * (et le logo / nom dans src/theme.ts).
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --font-sans: "Segoe UI", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-surface-high: var(--surface-high);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand-light: var(--brand-light);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -42,15 +37,17 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --color-cat-sport: var(--cat-sport);
+  --color-cat-wellness: var(--cat-wellness);
+  --color-cat-animation: var(--cat-animation);
+  --color-cat-services: var(--cat-services);
+  --color-cat-other: var(--cat-other);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -62,83 +59,76 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --radius: 1rem;
+  /* Fonds NOVA */
+  --background: #071424;
+  --card: #0e2036;
+  --surface-high: #142b45;
+  --popover: #0e2036;
+  /* Textes */
+  --foreground: #e8eef5;
+  --card-foreground: #e8eef5;
+  --popover-foreground: #e8eef5;
+  --muted-foreground: #a8b8cb;
+  /* Bleus de marque */
+  --primary: #4084c8;
+  --primary-foreground: #ffffff;
+  --brand-light: #8fb6dc;
+  --secondary: #142b45;
+  --secondary-foreground: #e8eef5;
+  --muted: #142b45;
+  --accent: #142b45;
+  --accent-foreground: #e8eef5;
+  --destructive: #e5737f;
+  --destructive-foreground: #071424;
+  --success: #8fcfae;
+  --warning: #e9c46a;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #4084c8;
+  /* Accents pastel par catégorie */
+  --cat-sport: #8fcfae;
+  --cat-wellness: #efa8bd;
+  --cat-animation: #e9c46a;
+  --cat-services: #7fb6d9;
+  --cat-other: #b3a5d9;
+  --sidebar: #0e2036;
+  --sidebar-foreground: #e8eef5;
+  --sidebar-primary: #4084c8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #142b45;
+  --sidebar-accent-foreground: #e8eef5;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #4084c8;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 2px;
   }
 }
+
+.prose-nova p { margin: 0.6em 0; }
+.prose-nova ul { list-style: disc; padding-left: 1.4em; margin: 0.6em 0; }
+.prose-nova ol { list-style: decimal; padding-left: 1.4em; margin: 0.6em 0; }
+.prose-nova a { color: var(--color-brand-light); text-decoration: underline; }
+.prose-nova strong { color: var(--color-foreground); }
+.prose-nova img { border-radius: var(--radius); margin: 0.8em 0; }

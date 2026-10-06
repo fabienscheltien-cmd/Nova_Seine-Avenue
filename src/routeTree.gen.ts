@@ -10,33 +10,226 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BatimentRouteImport } from './routes/batiment'
+import { Route as CompteRouteImport } from './routes/compte'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as EvenementsRouteImport } from './routes/evenements'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
+import { Route as RechercheRouteImport } from './routes/recherche'
+import { Route as ReservationsRouteImport } from './routes/reservations'
+import { Route as RestoRouteImport } from './routes/resto'
+import { Route as ActualitesIndexRouteImport } from './routes/actualites.index'
+import { Route as ActualitesIdRouteImport } from './routes/actualites.$id'
+import { Route as BatimentIndexRouteImport } from './routes/batiment.index'
+import { Route as BatimentContactsRouteImport } from './routes/batiment.contacts'
+import { Route as BatimentServicesRouteImport } from './routes/batiment.services'
+import { Route as BatimentVieRouteImport } from './routes/batiment.vie'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BatimentRoute = BatimentRouteImport.update({
+  id: '/batiment',
+  path: '/batiment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompteRoute = CompteRouteImport.update({
+  id: '/compte',
+  path: '/compte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvenementsRoute = EvenementsRouteImport.update({
+  id: '/evenements',
+  path: '/evenements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RechercheRoute = RechercheRouteImport.update({
+  id: '/recherche',
+  path: '/recherche',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservationsRoute = ReservationsRouteImport.update({
+  id: '/reservations',
+  path: '/reservations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestoRoute = RestoRouteImport.update({
+  id: '/resto',
+  path: '/resto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActualitesIndexRoute = ActualitesIndexRouteImport.update({
+  id: '/actualites/',
+  path: '/actualites/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActualitesIdRoute = ActualitesIdRouteImport.update({
+  id: '/actualites/$id',
+  path: '/actualites/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BatimentIndexRoute = BatimentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BatimentRoute,
+} as any)
+const BatimentContactsRoute = BatimentContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => BatimentRoute,
+} as any)
+const BatimentServicesRoute = BatimentServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => BatimentRoute,
+} as any)
+const BatimentVieRoute = BatimentVieRouteImport.update({
+  id: '/vie',
+  path: '/vie',
+  getParentRoute: () => BatimentRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/batiment': typeof BatimentRouteWithChildren
+  '/compte': typeof CompteRoute
+  '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
+  '/evenements': typeof EvenementsRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/recherche': typeof RechercheRoute
+  '/reservations': typeof ReservationsRoute
+  '/resto': typeof RestoRoute
+  '/actualites/$id': typeof ActualitesIdRoute
+  '/batiment/contacts': typeof BatimentContactsRoute
+  '/batiment/services': typeof BatimentServicesRoute
+  '/batiment/vie': typeof BatimentVieRoute
+  '/actualites/': typeof ActualitesIndexRoute
+  '/batiment/': typeof BatimentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compte': typeof CompteRoute
+  '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
+  '/evenements': typeof EvenementsRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/recherche': typeof RechercheRoute
+  '/reservations': typeof ReservationsRoute
+  '/resto': typeof RestoRoute
+  '/actualites/$id': typeof ActualitesIdRoute
+  '/batiment/contacts': typeof BatimentContactsRoute
+  '/batiment/services': typeof BatimentServicesRoute
+  '/batiment/vie': typeof BatimentVieRoute
+  '/actualites': typeof ActualitesIndexRoute
+  '/batiment': typeof BatimentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/batiment': typeof BatimentRouteWithChildren
+  '/compte': typeof CompteRoute
+  '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
+  '/evenements': typeof EvenementsRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/recherche': typeof RechercheRoute
+  '/reservations': typeof ReservationsRoute
+  '/resto': typeof RestoRoute
+  '/actualites/$id': typeof ActualitesIdRoute
+  '/batiment/contacts': typeof BatimentContactsRoute
+  '/batiment/services': typeof BatimentServicesRoute
+  '/batiment/vie': typeof BatimentVieRoute
+  '/actualites/': typeof ActualitesIndexRoute
+  '/batiment/': typeof BatimentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/batiment'
+    | '/compte'
+    | '/confidentialite'
+    | '/contact'
+    | '/evenements'
+    | '/mentions-legales'
+    | '/recherche'
+    | '/reservations'
+    | '/resto'
+    | '/actualites/$id'
+    | '/batiment/contacts'
+    | '/batiment/services'
+    | '/batiment/vie'
+    | '/actualites/'
+    | '/batiment/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/compte'
+    | '/confidentialite'
+    | '/contact'
+    | '/evenements'
+    | '/mentions-legales'
+    | '/recherche'
+    | '/reservations'
+    | '/resto'
+    | '/actualites/$id'
+    | '/batiment/contacts'
+    | '/batiment/services'
+    | '/batiment/vie'
+    | '/actualites'
+    | '/batiment'
+  id:
+    | '__root__'
+    | '/'
+    | '/batiment'
+    | '/compte'
+    | '/confidentialite'
+    | '/contact'
+    | '/evenements'
+    | '/mentions-legales'
+    | '/recherche'
+    | '/reservations'
+    | '/resto'
+    | '/actualites/$id'
+    | '/batiment/contacts'
+    | '/batiment/services'
+    | '/batiment/vie'
+    | '/actualites/'
+    | '/batiment/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BatimentRoute: typeof BatimentRouteWithChildren
+  CompteRoute: typeof CompteRoute
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
+  ContactRoute: typeof ContactRoute
+  EvenementsRoute: typeof EvenementsRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
+  RechercheRoute: typeof RechercheRoute
+  ReservationsRoute: typeof ReservationsRoute
+  RestoRoute: typeof RestoRoute
+  ActualitesIdRoute: typeof ActualitesIdRoute
+  ActualitesIndexRoute: typeof ActualitesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +241,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/batiment': {
+      id: '/batiment'
+      path: '/batiment'
+      fullPath: '/batiment'
+      preLoaderRoute: typeof BatimentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compte': {
+      id: '/compte'
+      path: '/compte'
+      fullPath: '/compte'
+      preLoaderRoute: typeof CompteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evenements': {
+      id: '/evenements'
+      path: '/evenements'
+      fullPath: '/evenements'
+      preLoaderRoute: typeof EvenementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recherche': {
+      id: '/recherche'
+      path: '/recherche'
+      fullPath: '/recherche'
+      preLoaderRoute: typeof RechercheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reservations': {
+      id: '/reservations'
+      path: '/reservations'
+      fullPath: '/reservations'
+      preLoaderRoute: typeof ReservationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resto': {
+      id: '/resto'
+      path: '/resto'
+      fullPath: '/resto'
+      preLoaderRoute: typeof RestoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actualites/': {
+      id: '/actualites/'
+      path: '/actualites'
+      fullPath: '/actualites/'
+      preLoaderRoute: typeof ActualitesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/actualites/$id': {
+      id: '/actualites/$id'
+      path: '/actualites/$id'
+      fullPath: '/actualites/$id'
+      preLoaderRoute: typeof ActualitesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/batiment/': {
+      id: '/batiment/'
+      path: '/'
+      fullPath: '/batiment/'
+      preLoaderRoute: typeof BatimentIndexRouteImport
+      parentRoute: typeof BatimentRoute
+    }
+    '/batiment/contacts': {
+      id: '/batiment/contacts'
+      path: '/contacts'
+      fullPath: '/batiment/contacts'
+      preLoaderRoute: typeof BatimentContactsRouteImport
+      parentRoute: typeof BatimentRoute
+    }
+    '/batiment/services': {
+      id: '/batiment/services'
+      path: '/services'
+      fullPath: '/batiment/services'
+      preLoaderRoute: typeof BatimentServicesRouteImport
+      parentRoute: typeof BatimentRoute
+    }
+    '/batiment/vie': {
+      id: '/batiment/vie'
+      path: '/vie'
+      fullPath: '/batiment/vie'
+      preLoaderRoute: typeof BatimentVieRouteImport
+      parentRoute: typeof BatimentRoute
+    }
   }
 }
 
+interface BatimentRouteChildren {
+  BatimentContactsRoute: typeof BatimentContactsRoute
+  BatimentServicesRoute: typeof BatimentServicesRoute
+  BatimentVieRoute: typeof BatimentVieRoute
+  BatimentIndexRoute: typeof BatimentIndexRoute
+}
+
+const BatimentRouteChildren: BatimentRouteChildren = {
+  BatimentContactsRoute: BatimentContactsRoute,
+  BatimentServicesRoute: BatimentServicesRoute,
+  BatimentVieRoute: BatimentVieRoute,
+  BatimentIndexRoute: BatimentIndexRoute,
+}
+
+const BatimentRouteWithChildren = BatimentRoute._addFileChildren(
+  BatimentRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BatimentRoute: BatimentRouteWithChildren,
+  CompteRoute: CompteRoute,
+  ConfidentialiteRoute: ConfidentialiteRoute,
+  ContactRoute: ContactRoute,
+  EvenementsRoute: EvenementsRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
+  RechercheRoute: RechercheRoute,
+  ReservationsRoute: ReservationsRoute,
+  RestoRoute: RestoRoute,
+  ActualitesIdRoute: ActualitesIdRoute,
+  ActualitesIndexRoute: ActualitesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
