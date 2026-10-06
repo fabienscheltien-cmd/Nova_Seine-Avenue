@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Pencil, Plus, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, GripVertical, Pencil, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmptyState, Loading } from "@/components/common";
-import { swapPositions, toLocalInput, useAdminRows, useDeleteRow, useInvalidate, useSaveRow, type AdminTable } from "@/lib/admin";
+import { reorderRows, swapPositions, toLocalInput, useAdminRows, useDeleteRow, useInvalidate, useSaveRow, type AdminTable } from "@/lib/admin";
 import { ConfirmButton, FieldShell, ImageField, RichTextEditor, btnPrimary, btnSecondary, inputCls } from "./fields";
 
 export type FieldDef = {
@@ -86,6 +86,8 @@ export function CrudModule(p: Props) {
   const invalidate = useInvalidate();
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<AnyRow | "new" | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   useEffect(() => { if (p.autoOpenNew) setEditing("new"); }, [p.autoOpenNew]);
 
@@ -101,6 +103,18 @@ export function CrudModule(p: Props) {
     const other = siblings[i + dir];
     if (!other) return;
     try { await swapPositions(p.table, r as never, other as never); invalidate(p.table); }
+    catch { toast.error("Déplacement impossible"); }
+  };
+
+  // Glisser-déposer (souris) ; les flèches restent disponibles au clavier et sur mobile.
+  const drop = async (target: AnyRow, siblings: AnyRow[]) => {
+    const from = siblings.findIndex((s) => s.id === dragId);
+    const to = siblings.findIndex((s) => s.id === target.id);
+    setDragId(null); setOverId(null);
+    if (from < 0 || to < 0 || from === to) return;
+    const ids = siblings.map((s) => s.id);
+    ids.splice(to, 0, ids.splice(from, 1)[0]!);
+    try { await reorderRows(p.table, ids); invalidate(p.table); toast.success("Ordre enregistré"); }
     catch { toast.error("Déplacement impossible"); }
   };
 
@@ -142,7 +156,14 @@ export function CrudModule(p: Props) {
           ) : (
             <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {g.rows.map((r, i) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                <li key={r.id}
+                  draggable={!!p.orderable && !needle}
+                  onDragStart={(e) => { setDragId(r.id); e.dataTransfer.effectAllowed = "move"; }}
+                  onDragOver={(e) => { if (dragId && g.rows.some((x) => x.id === dragId)) { e.preventDefault(); setOverId(r.id); } }}
+                  onDragEnd={() => { setDragId(null); setOverId(null); }}
+                  onDrop={(e) => { e.preventDefault(); drop(r, g.rows); }}
+                  className={`flex flex-wrap items-center gap-3 px-4 py-3 ${dragId === r.id ? "opacity-50" : ""} ${overId === r.id && dragId !== r.id ? "bg-primary/10" : ""}`}>
+                  {p.orderable && !needle && <GripVertical className="hidden h-4 w-4 shrink-0 cursor-grab text-muted-foreground md:block" aria-hidden />}
                   <div className="min-w-0 flex-1">
                     <p className={`font-semibold ${p.hideable && !r["visible"] ? "text-muted-foreground line-through" : ""}`}>{p.rowTitle(r)}</p>
                     {p.rowMeta && <div className="mt-0.5 text-sm text-muted-foreground">{p.rowMeta(r)}</div>}

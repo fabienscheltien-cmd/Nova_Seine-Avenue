@@ -18,7 +18,8 @@ const verbLabel: Record<string, string> = {
   create: "création", update: "modification", delete: "suppression", duplicate: "duplication", hide: "masquage", show: "affichage",
   cancel: "annulation", create_series: "création d'une série", update_series: "modification d'une série", delete_series: "suppression d'une série",
   new: "remis à traiter", handled: "traité", grant: "accès accordé", revoke: "accès retiré", accepted: "rôle activé",
-  invitation_cancelled: "invitation annulée", deleted: "suppression",
+  invitation_cancelled: "invitation annulée", deleted: "suppression", restore: "restauration d'une version",
+  reply: "réponse envoyée", suspend: "compte suspendu", unsuspend: "compte réactivé", reset_access: "accès réinitialisé",
 };
 
 function describe(action: string, entity: string | null) {

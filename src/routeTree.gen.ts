@@ -29,9 +29,12 @@ import { Route as AdminConfigurationRouteImport } from './routes/admin.configura
 import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
 import { Route as AdminEvenementsRouteImport } from './routes/admin.evenements'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
+import { Route as AdminHistoriqueRouteImport } from './routes/admin.historique'
 import { Route as AdminJournalRouteImport } from './routes/admin.journal'
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
 import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminSitesRouteImport } from './routes/admin.sites'
+import { Route as AdminUtilisateursRouteImport } from './routes/admin.utilisateurs'
 import { Route as AdminVieRouteImport } from './routes/admin.vie'
 import { Route as BatimentIndexRouteImport } from './routes/batiment.index'
 import { Route as BatimentContactsRouteImport } from './routes/batiment.contacts'
@@ -138,6 +141,11 @@ const AdminFaqRoute = AdminFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHistoriqueRoute = AdminHistoriqueRouteImport.update({
+  id: '/historique',
+  path: '/historique',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminJournalRoute = AdminJournalRouteImport.update({
   id: '/journal',
   path: '/journal',
@@ -151,6 +159,16 @@ const AdminMessagesRoute = AdminMessagesRouteImport.update({
 const AdminServicesRoute = AdminServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSitesRoute = AdminSitesRouteImport.update({
+  id: '/sites',
+  path: '/sites',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
+  id: '/utilisateurs',
+  path: '/utilisateurs',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminVieRoute = AdminVieRouteImport.update({
@@ -198,9 +216,12 @@ export interface FileRoutesByFullPath {
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/evenements': typeof AdminEvenementsRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
   '/admin/journal': typeof AdminJournalRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
@@ -226,9 +247,12 @@ export interface FileRoutesByTo {
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/evenements': typeof AdminEvenementsRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
   '/admin/journal': typeof AdminJournalRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
@@ -257,9 +281,12 @@ export interface FileRoutesById {
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/evenements': typeof AdminEvenementsRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
   '/admin/journal': typeof AdminJournalRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
@@ -289,9 +316,12 @@ export interface FileRouteTypes {
     | '/admin/contacts'
     | '/admin/evenements'
     | '/admin/faq'
+    | '/admin/historique'
     | '/admin/journal'
     | '/admin/messages'
     | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
     | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
@@ -317,9 +347,12 @@ export interface FileRouteTypes {
     | '/admin/contacts'
     | '/admin/evenements'
     | '/admin/faq'
+    | '/admin/historique'
     | '/admin/journal'
     | '/admin/messages'
     | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
     | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
@@ -347,9 +380,12 @@ export interface FileRouteTypes {
     | '/admin/contacts'
     | '/admin/evenements'
     | '/admin/faq'
+    | '/admin/historique'
     | '/admin/journal'
     | '/admin/messages'
     | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
     | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
@@ -517,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFaqRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/historique': {
+      id: '/admin/historique'
+      path: '/historique'
+      fullPath: '/admin/historique'
+      preLoaderRoute: typeof AdminHistoriqueRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/journal': {
       id: '/admin/journal'
       path: '/journal'
@@ -536,6 +579,20 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/admin/services'
       preLoaderRoute: typeof AdminServicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sites': {
+      id: '/admin/sites'
+      path: '/sites'
+      fullPath: '/admin/sites'
+      preLoaderRoute: typeof AdminSitesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/utilisateurs': {
+      id: '/admin/utilisateurs'
+      path: '/utilisateurs'
+      fullPath: '/admin/utilisateurs'
+      preLoaderRoute: typeof AdminUtilisateursRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/vie': {
@@ -583,9 +640,12 @@ interface AdminRouteChildren {
   AdminContactsRoute: typeof AdminContactsRoute
   AdminEvenementsRoute: typeof AdminEvenementsRoute
   AdminFaqRoute: typeof AdminFaqRoute
+  AdminHistoriqueRoute: typeof AdminHistoriqueRoute
   AdminJournalRoute: typeof AdminJournalRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminServicesRoute: typeof AdminServicesRoute
+  AdminSitesRoute: typeof AdminSitesRoute
+  AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminVieRoute: typeof AdminVieRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -597,9 +657,12 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminContactsRoute: AdminContactsRoute,
   AdminEvenementsRoute: AdminEvenementsRoute,
   AdminFaqRoute: AdminFaqRoute,
+  AdminHistoriqueRoute: AdminHistoriqueRoute,
   AdminJournalRoute: AdminJournalRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminServicesRoute: AdminServicesRoute,
+  AdminSitesRoute: AdminSitesRoute,
+  AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminVieRoute: AdminVieRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

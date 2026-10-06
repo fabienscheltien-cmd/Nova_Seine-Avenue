@@ -63,13 +63,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-light">{site?.name ?? "\u00a0"}</span>
           </Link>
           <nav aria-label="Navigation principale" className="ml-4 hidden lg:block">
-            <ul className="flex items-center gap-5">
+            <ul className="flex items-center gap-4 xl:gap-5">
               {desktopNav.map((n) => (
                 <li key={n.to}>
                   <Link
                     to={n.to}
                     activeOptions={{ exact: "exact" in n }}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="whitespace-nowrap text-sm text-muted-foreground transition-colors hover:text-foreground"
                     activeProps={{ className: "text-foreground font-semibold" }}
                   >
                     {n.label}
@@ -78,8 +78,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               ))}
             </ul>
           </nav>
-          <SearchBox className="ml-auto hidden w-64 md:block" />
-          <Link to="/recherche" search={{ q: "" }} className="ml-auto flex h-10 w-10 items-center justify-center rounded-full border border-border md:hidden" aria-label={t("nav.search")}>
+          <SearchBox className="ml-auto hidden w-64 md:block lg:hidden 2xl:block" />
+          <Link to="/recherche" search={{ q: "" }} className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border md:hidden lg:flex 2xl:hidden" aria-label={t("nav.search")}>
             <Search className="h-4 w-4" />
           </Link>
           {isAdmin && (

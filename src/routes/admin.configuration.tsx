@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/lib/admin";
-import { useSite } from "@/lib/site";
+import { useAdminSite, type SiteRow } from "@/lib/admin-site";
 import { FieldShell, ImageField, btnPrimary, inputCls } from "@/components/admin/fields";
 import { Loading, PageHeader } from "@/components/common";
 
@@ -13,12 +13,12 @@ export const Route = createFileRoute("/admin/configuration")({ component: AdminC
 const urlOk = (s: string) => s === "" || /^https?:\/\/\S+$/i.test(s);
 
 function AdminConfig() {
-  const { data: site, isLoading } = useSite();
-  if (isLoading || !site) return <Loading />;
+  const { site } = useAdminSite();
+  if (!site) return <Loading />;
   return <ConfigForm key={site.id + site.updated_at} site={site} />;
 }
 
-function ConfigForm({ site }: { site: NonNullable<ReturnType<typeof useSite>["data"]> }) {
+function ConfigForm({ site }: { site: SiteRow }) {
   const qc = useQueryClient();
   const [v, setV] = useState({
     name: site.name, address: site.address ?? "", reception_email: site.reception_email ?? "", reception_phone: site.reception_phone ?? "",
@@ -39,6 +39,7 @@ function ConfigForm({ site }: { site: NonNullable<ReturnType<typeof useSite>["da
     if (error) return void toast.error("Enregistrement impossible");
     await logActivity(site.id, "sites.update", "sites", site.id);
     qc.invalidateQueries({ queryKey: ["site"] });
+    qc.invalidateQueries({ queryKey: ["admin-sites"] });
     toast.success("Configuration enregistrée");
   };
 

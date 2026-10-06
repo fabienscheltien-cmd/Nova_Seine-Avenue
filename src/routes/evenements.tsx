@@ -32,7 +32,10 @@ function EventsPage() {
   const { data: cats } = useCategories();
   const { data: locs } = useLocations();
 
-  const filtered = (data ?? []).filter((e) => (!cat || e.category_id === cat) && (!loc || e.location_id === loc));
+  // « Autre » regroupe aussi les événements sans catégorie.
+  const otherId = cats?.find((c) => c.name.toLowerCase() === "autre")?.id;
+  const matchCat = (e: EventRow) => !cat || e.category_id === cat || (cat === otherId && !e.category_id);
+  const filtered = (data ?? []).filter((e) => matchCat(e) && (!loc || e.location_id === loc));
   const days = Array.from({ length: 7 }, (_, i) => addDays(range.from, i));
 
   const select = "h-11 rounded-full border border-input bg-card px-4 text-sm";

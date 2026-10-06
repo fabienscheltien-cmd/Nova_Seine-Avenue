@@ -6,6 +6,8 @@ import { CalendarPlus, Newspaper, HelpCircle, Inbox, AlertCircle, CheckCircle2, 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useAdminSiteId } from "@/lib/admin";
+import { useAdminSite } from "@/lib/admin-site";
+import { Onboarding } from "@/components/admin/Onboarding";
 import { EmptyState, Loading, PageHeader, SectionTitle } from "@/components/common";
 
 export const Route = createFileRoute("/admin/")({ component: Dashboard });
@@ -55,7 +57,11 @@ function BigShortcut({ to, icon: Icon, label }: { to: "/admin/evenements" | "/ad
 
 function Dashboard() {
   const siteId = useAdminSiteId();
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
+  const { site } = useAdminSite();
+  // Assistant de première connexion : admins de ce site qui ne l'ont ni terminé ni passé.
+  const showOnboarding = !!site && !!profile && !profile.admin_onboarded_at
+    && roles.some((r) => r.role === "site_admin" && r.site_id === site.id);
   const { data, isLoading } = useDashboard(siteId);
 
   const todos = data ? [
@@ -68,6 +74,7 @@ function Dashboard() {
   return (
     <div>
       <PageHeader title={`Bonjour${profile?.first_name ? ` ${profile.first_name}` : ""}`} subtitle="Voici ce qui demande votre attention." />
+      {showOnboarding && site && <Onboarding site={site} />}
 
       <nav aria-label="Actions rapides" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <BigShortcut to="/admin/evenements" icon={CalendarPlus} label="Ajouter un événement" />

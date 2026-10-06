@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { MfaPrompt } from "@/components/account/MfaPrompt";
 
 function NotFoundComponent() {
   return (
@@ -114,6 +115,7 @@ function RootComponent() {
             <Outlet />
           </AppShell>
         )}
+        <MfaPrompt />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

@@ -23,8 +23,8 @@ export function FieldShell({ id, label, help, required, children }: { id: string
   );
 }
 
-export function ConfirmButton({ label, title, description, confirmLabel = "Supprimer", onConfirm, className, children }: {
-  label: string; title: string; description: string; confirmLabel?: string; onConfirm: () => void; className?: string; children?: ReactNode;
+export function ConfirmButton({ label, title, description, confirmLabel = "Supprimer", onConfirm, className, children, destructive = true }: {
+  label: string; title: string; description: string; confirmLabel?: string; onConfirm: () => void; className?: string; children?: ReactNode; destructive?: boolean;
 }) {
   return (
     <AlertDialog>
@@ -40,7 +40,7 @@ export function ConfirmButton({ label, title, description, confirmLabel = "Suppr
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{confirmLabel}</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm} className={destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : undefined}>{confirmLabel}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

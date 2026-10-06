@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { useSite } from "./site";
+import { useAdminSite } from "./admin-site";
 
 type Tables = Database["public"]["Tables"];
 export type AdminTable =
@@ -12,8 +12,7 @@ export type Row<T extends AdminTable> = Tables[T]["Row"];
 
 /** Identifiant du site géré ; non vide sous /admin (le layout bloque sinon). */
 export function useAdminSiteId(): string {
-  const { data } = useSite();
-  return data?.id ?? "";
+  return useAdminSite().site?.id ?? "";
 }
 
 /** Paramètre d'URL « ?nouveau=1 » : ouvre directement le formulaire d'ajout. */
@@ -97,6 +96,13 @@ export async function swapPositions(table: AdminTable, a: { id: string; position
   const r1 = await from(table).update({ position: pa }).eq("id", a.id);
   const r2 = await from(table).update({ position: a.position }).eq("id", b.id);
   if (r1.error || r2.error) throw r1.error ?? r2.error;
+}
+
+/** Enregistre un nouvel ordre (glisser-déposer) : positions 1, 2, 3… dans l'ordre donné. */
+export async function reorderRows(table: AdminTable, ids: string[]) {
+  const results = await Promise.all(ids.map((id, i) => from(table).update({ position: i + 1 }).eq("id", id)));
+  const failed = results.find((r: { error: unknown }) => r.error);
+  if (failed) throw failed.error;
 }
 
 /** Redimensionne et compresse une image avant téléversement (1600 px max, JPEG). */

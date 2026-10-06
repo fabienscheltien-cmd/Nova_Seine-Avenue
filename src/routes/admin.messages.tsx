@@ -1,24 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CheckCircle2, Mail, RotateCcw } from "lucide-react";
+import { CheckCircle2, Mail, RotateCcw, Send } from "lucide-react";
 import { toast } from "sonner";
-import { useAdminRows, useAdminSiteId, useDeleteRow, useSaveRow, type Row } from "@/lib/admin";
-import { useSite } from "@/lib/site";
-import { ConfirmButton, btnPrimary, btnSecondary } from "@/components/admin/fields";
+import { useAdminRows, useAdminSiteId, useDeleteRow, useInvalidate, useSaveRow, type Row } from "@/lib/admin";
+import { getEmailStatus, replyToMessage } from "@/lib/admin.functions";
+import { useAdminSite } from "@/lib/admin-site";
+import { ConfirmButton, btnPrimary, btnSecondary, inputCls } from "@/components/admin/fields";
 import { EmptyState, Loading, PageHeader } from "@/components/common";
 
 export const Route = createFileRoute("/admin/messages")({ component: AdminMessages });
 
 function AdminMessages() {
   const siteId = useAdminSiteId();
-  const { data: site } = useSite();
+  const { site } = useAdminSite();
   const rows = useAdminRows("contact_messages", siteId, { column: "created_at", ascending: false });
   const save = useSaveRow("contact_messages", siteId);
   const del = useDeleteRow("contact_messages", siteId);
   const [filter, setFilter] = useState<"new" | "handled" | "all">("new");
   const [open, setOpen] = useState<string | null>(null);
+  const emailStatus = useServerFn(getEmailStatus);
+  const canSend = useQuery({ queryKey: ["admin", "email-status"], queryFn: () => emailStatus(), staleTime: 10 * 60_000 }).data?.configured ?? false;
 
   const list = (rows.data ?? []).filter((m) => filter === "all" || m.status === filter);
   const setStatus = (m: Row<"contact_messages">, status: "new" | "handled") =>
@@ -65,9 +70,10 @@ function AdminMessages() {
                   <div className="border-t border-border px-4 py-3">
                     <p className="text-sm text-muted-foreground">De : {m.name} &lt;{m.email}&gt;</p>
                     <p className="mt-3 whitespace-pre-line">{m.message}</p>
+                    {canSend && <ReplyForm message={m} />}
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <a href={replyLink(m)} className={btnPrimary} onClick={() => m.status === "new" && setStatus(m, "handled")}>
-                        <Mail className="h-4 w-4" aria-hidden /> Répondre par e-mail
+                      <a href={replyLink(m)} className={canSend ? btnSecondary : btnPrimary} onClick={() => m.status === "new" && setStatus(m, "handled")}>
+                        <Mail className="h-4 w-4" aria-hidden /> {canSend ? "Ouvrir ma messagerie" : "Répondre par e-mail"}
                       </a>
                       {m.status === "new" ? (
                         <button type="button" onClick={() => setStatus(m, "handled")} className={btnSecondary}><CheckCircle2 className="h-4 w-4" aria-hidden /> Marquer comme traité</button>
@@ -83,6 +89,35 @@ function AdminMessages() {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function ReplyForm({ message }: { message: Row<"contact_messages"> }) {
+  const reply = useServerFn(replyToMessage);
+  const invalidate = useInvalidate();
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+  const id = `reply-${message.id}`;
+  const send = async () => {
+    setBusy(true);
+    try {
+      await reply({ data: { messageId: message.id, body } });
+      toast.success("Réponse envoyée à " + message.email);
+      setBody("");
+      invalidate("contact_messages");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Envoi impossible");
+    } finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-4">
+      <label htmlFor={id} className="text-sm font-semibold">Votre réponse</label>
+      <textarea id={id} rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Bonjour ${message.name},`} className={`${inputCls} h-auto py-3`} />
+      <p className="mt-1 text-xs text-muted-foreground">Envoyée à {message.email}. Le message sera marqué comme traité.</p>
+      <button type="button" onClick={send} disabled={busy || !body.trim()} className={`${btnPrimary} mt-2`}>
+        <Send className="h-4 w-4" aria-hidden /> {busy ? "Envoi…" : "Envoyer la réponse"}
+      </button>
     </div>
   );
 }

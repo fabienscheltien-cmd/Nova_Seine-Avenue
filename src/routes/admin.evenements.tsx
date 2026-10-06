@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   downloadCsv, logActivity, newItemSearch, useAdminRows, useAdminSiteId, useInvalidate, type Row,
 } from "@/lib/admin";
-import { getEventRegistrants } from "@/lib/admin.functions";
+import { cancelEvent, getEventRegistrants } from "@/lib/admin.functions";
 import { eventStatus } from "@/lib/data";
 import { CrudModule } from "@/components/admin/CrudModule";
 import { ConfirmButton, FieldShell, ImageField, btnPrimary, btnSecondary, inputCls } from "@/components/admin/fields";
@@ -125,13 +125,21 @@ function EventsList({ siteId, autoOpenNew }: { siteId: string; autoOpenNew: bool
   const needle = q.trim().toLowerCase();
   const list = (events.data ?? []).filter((e) => !needle || `${e.title} ${e.category?.name ?? ""} ${e.location?.name ?? ""}`.toLowerCase().includes(needle));
 
+  const cancelFn = useServerFn(cancelEvent);
   const cancel = async (e: EventRow) => {
-    const { error } = await supabase.from("events").update({ status: "cancelled", registration_open: false }).eq("id", e.id);
-    if (error) { toast.error("Annulation impossible"); return; }
-    await logActivity(siteId, "events.cancel", "events", e.id, { title: e.title });
-    invalidate("events");
-    toast.success("Événement annulé");
-    if (e.registered_count > 0) setRegistrants({ ...e, status: "cancelled" });
+    try {
+      const res = await cancelFn({ data: { eventId: e.id } });
+      invalidate("events");
+      if (res.notified > 0) {
+        toast.success(`Événement annulé. ${res.registrants} inscrit${res.registrants > 1 ? "s ont" : " a"} été prévenu${res.registrants > 1 ? "s" : ""} par e-mail.`);
+      } else {
+        toast.success("Événement annulé");
+        // Sans envoi automatique configuré : message prêt à envoyer depuis la messagerie.
+        if (res.registrants > 0) setRegistrants({ ...e, status: "cancelled" });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Annulation impossible");
+    }
   };
 
   const remove = async (e: EventRow, wholeSeries: boolean) => {
@@ -190,7 +198,7 @@ function EventsList({ siteId, autoOpenNew }: { siteId: string; autoOpenNew: bool
                   <IconButton label="Modifier" onClick={() => setEditing(e)}><Pencil className="h-4 w-4" /></IconButton>
                   {e.status !== "cancelled" && st !== "ended" && (
                     <ConfirmButton label="Annuler l'événement" title="Annuler cet événement ?" confirmLabel="Annuler l'événement"
-                      description={`« ${e.title} » restera visible avec la mention « Annulé ».${e.registered_count ? ` Vous pourrez ensuite prévenir les ${e.registered_count} inscrit(s) par e-mail.` : ""}`}
+                      description={`« ${e.title} » restera visible avec la mention « Annulé ».${e.registered_count ? ` Les ${e.registered_count} inscrit(s) seront prévenus par e-mail.` : ""}`}
                       onConfirm={() => cancel(e)}>
                       <Ban className="h-4 w-4" aria-hidden />
                     </ConfirmButton>
