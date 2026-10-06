@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -102,13 +103,17 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Le back-office a sa propre mise en page (src/routes/admin.tsx).
+  const isAdmin = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin") });
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        {isAdmin ? <Outlet /> : (
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        )}
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

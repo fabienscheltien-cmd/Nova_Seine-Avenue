@@ -10,6 +10,8 @@ type AuthState = {
   ready: boolean;
   profile: { first_name: string | null; last_name: string | null; company: string | null; floor: string | null; newsletter_opt_in: boolean; notifications_opt_in: boolean; email: string | null } | null;
   roles: Role[];
+  /** Rôles chargés (ou aucun utilisateur connecté). */
+  rolesReady: boolean;
   isAdminOf: (siteId?: string) => boolean;
   isSuperAdmin: boolean;
   signOut: () => Promise<void>;
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ready,
     profile: user ? (me.data?.profile ?? null) : null,
     roles,
+    rolesReady: !user || me.isSuccess || me.isError,
     isSuperAdmin,
     isAdminOf: (siteId) => isSuperAdmin || roles.some((r) => r.role === "site_admin" && r.site_id === siteId),
     signOut: async () => {

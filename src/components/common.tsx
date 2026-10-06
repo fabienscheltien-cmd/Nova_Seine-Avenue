@@ -26,7 +26,7 @@ export function Loading() {
   return <p className="py-6 text-center text-muted-foreground" role="status">{t("common.loading")}</p>;
 }
 
-export function ContactButtons({ phone, email, size = "md" }: { phone?: string | null; email?: string | null; size?: "md" | "lg" }) {
+export function ContactButtons({ phone, email, size = "md" }: { phone?: string | null | undefined; email?: string | null | undefined; size?: "md" | "lg" }) {
   const cls = size === "lg" ? "h-12 px-5 text-base" : "h-11 px-4 text-sm";
   return (
     <div className="flex flex-wrap gap-2">

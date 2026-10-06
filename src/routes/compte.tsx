@@ -40,7 +40,7 @@ function MagicLink() {
 }
 
 function Account() {
-  const { user, ready, profile, signOut } = useAuth();
+  const { user, ready, profile, signOut, roles } = useAuth();
   const qc = useQueryClient();
   const regs = useMyRegistrations(user?.id);
   const del = useServerFn(deleteMyAccount);
@@ -75,6 +75,9 @@ function Account() {
   return (
     <div>
       <PageHeader title="Mon compte" subtitle={user.email ?? ""}>
+        {roles.some((r) => r.role !== "occupant") && (
+          <Link to="/admin" className="inline-flex h-11 items-center rounded-full border border-primary/50 px-5 text-sm font-semibold text-brand-light">Espace de gestion</Link>
+        )}
         <button onClick={signOut} className="h-11 rounded-full border border-border px-5 text-sm font-semibold">Se déconnecter</button>
       </PageHeader>
       {profile && (
