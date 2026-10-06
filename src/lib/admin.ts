@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAdminSite } from "./admin-site";
+import { toCsv } from "./csv";
 
 type Tables = Database["public"]["Tables"];
 export type AdminTable =
@@ -137,13 +138,7 @@ export function toLocalInput(iso: string | null | undefined): string {
 }
 
 export function downloadCsv(filename: string, rows: (string | number | null | undefined)[][]) {
-  const esc = (v: string | number | null | undefined) => {
-    const s = v == null ? "" : String(v);
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  // Point-virgule et BOM : ouverture directe dans Excel en français.
-  const csv = "﻿" + rows.map((r) => r.map(esc).join(";")).join("\r\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const url = URL.createObjectURL(new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" }));
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;

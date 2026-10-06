@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useAdminSite } from "@/lib/admin-site";
 import { logActivity } from "@/lib/admin";
 import { theme } from "@/theme";
+import { slugify } from "@/lib/slug";
 import { FieldShell, btnPrimary, btnSecondary, inputCls } from "@/components/admin/fields";
 import { EmptyState, PageHeader, SectionTitle } from "@/components/common";
 
@@ -15,9 +16,6 @@ export const Route = createFileRoute("/admin/sites")({ component: AdminSites });
 
 const DEFAULT_CATEGORIES = ["Sport", "Bien-être", "Animation", "Services", "Autre"];
 const DEFAULT_FAQ_THEMES = ["Accès et badges", "Réservations", "Restauration", "Services", "Sécurité", "Contacts"];
-
-const slugify = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 
 function AdminSites() {
   const { isSuperAdmin } = useAuth();

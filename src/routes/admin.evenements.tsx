@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { addDays, format, isBefore, parseISO, startOfDay } from "date-fns";
+import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Ban, Copy, Download, Mail, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin";
 import { cancelEvent, getEventRegistrants } from "@/lib/admin.functions";
 import { eventStatus } from "@/lib/data";
+import { MAX_OCCURRENCES, localDateTimeToIso, weeklyOccurrences } from "@/lib/recurrence";
 import { CrudModule } from "@/components/admin/CrudModule";
 import { ConfirmButton, FieldShell, ImageField, btnPrimary, btnSecondary, inputCls } from "@/components/admin/fields";
 import { EmptyState, Loading, PageHeader } from "@/components/common";
@@ -29,7 +30,6 @@ const WEEKDAYS = [
   { value: 1, label: "Lun" }, { value: 2, label: "Mar" }, { value: 3, label: "Mer" }, { value: 4, label: "Jeu" },
   { value: 5, label: "Ven" }, { value: 6, label: "Sam" }, { value: 0, label: "Dim" },
 ];
-const MAX_OCCURRENCES = 200;
 
 function AdminEvents() {
   const siteId = useAdminSiteId();
@@ -275,8 +275,7 @@ function stateFrom(row: EventRow | null): FormState {
   };
 }
 
-/** Combine une date (aaaa-mm-jj) et une heure (hh:mm) en ISO, heure locale. */
-const at = (date: string, time: string) => new Date(`${date}T${time}:00`).toISOString();
+const at = localDateTimeToIso;
 
 function EventForm({ siteId, row, copyOf, onDone }: { siteId: string; row: EventRow | null; copyOf: EventRow | null; onDone: () => void }) {
   const cats = useAdminRows("event_categories", siteId);
@@ -300,15 +299,7 @@ function EventForm({ siteId, row, copyOf, onDone }: { siteId: string; row: Event
     }));
   };
 
-  const occurrences = useMemo(() => {
-    if (!repeat || !days.length || !v.date || !until) return [];
-    const out: string[] = [];
-    const end = parseISO(until);
-    for (let d = startOfDay(parseISO(v.date)); !isBefore(end, d) && out.length < MAX_OCCURRENCES; d = addDays(d, 1)) {
-      if (days.includes(d.getDay())) out.push(format(d, "yyyy-MM-dd"));
-    }
-    return out;
-  }, [repeat, days, v.date, until]);
+  const occurrences = useMemo(() => (repeat ? weeklyOccurrences(v.date, until, days) : []), [repeat, days, v.date, until]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
