@@ -69,9 +69,10 @@ function useSiteTable<T extends "event_categories" | "event_locations" | "contac
     queryKey: [table, siteId],
     enabled: !!siteId,
     queryFn: async () => {
-      const { data, error } = await supabase.from(table).select("*").eq("site_id", siteId!).order("position");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.from(table) as any).select("*").eq("site_id", siteId!).order("position");
       if (error) throw error;
-      return data as Tables[T]["Row"][];
+      return data as unknown as Tables[T]["Row"][];
     },
   });
 }

@@ -109,7 +109,7 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
           {status !== "ended" && status !== "cancelled" && (
             <button
               type="button"
-              onClick={() => downloadIcs({ ...event, location: event.location?.name })}
+              onClick={() => downloadIcs({ ...event, location: event.location?.name ?? null })}
               className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-4 text-sm"
             >
               <CalendarPlus className="h-4 w-4" aria-hidden /> {t("events.addToCalendar")}
