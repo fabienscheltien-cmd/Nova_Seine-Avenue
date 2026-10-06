@@ -99,6 +99,42 @@ export type Database = {
           },
         ]
       }
+      content_history: {
+        Row: {
+          changed_by: string | null
+          changed_by_email: string | null
+          created_at: string
+          id: string
+          old_data: Json
+          operation: string
+          row_id: string
+          site_id: string | null
+          table_name: string
+        }
+        Insert: {
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          id?: string
+          old_data: Json
+          operation: string
+          row_id: string
+          site_id?: string | null
+          table_name: string
+        }
+        Update: {
+          changed_by?: string | null
+          changed_by_email?: string | null
+          created_at?: string
+          id?: string
+          old_data?: Json
+          operation?: string
+          row_id?: string
+          site_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -598,6 +634,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_onboarded_at: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -612,6 +649,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_onboarded_at?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -626,6 +664,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_onboarded_at?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -825,6 +864,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_force_sign_out: { Args: { _user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

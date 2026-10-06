@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -15,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { MfaPrompt } from "@/components/account/MfaPrompt";
 
 function NotFoundComponent() {
   return (
@@ -102,13 +104,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Le back-office a sa propre mise en page (src/routes/admin.tsx).
+  const isAdmin = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin") });
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        {isAdmin ? <Outlet /> : (
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        )}
+        <MfaPrompt />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

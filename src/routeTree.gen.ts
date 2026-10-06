@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BatimentRouteImport } from './routes/batiment'
 import { Route as CompteRouteImport } from './routes/compte'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
@@ -21,6 +22,20 @@ import { Route as ReservationsRouteImport } from './routes/reservations'
 import { Route as RestoRouteImport } from './routes/resto'
 import { Route as ActualitesIndexRouteImport } from './routes/actualites.index'
 import { Route as ActualitesIdRouteImport } from './routes/actualites.$id'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAccesRouteImport } from './routes/admin.acces'
+import { Route as AdminActualitesRouteImport } from './routes/admin.actualites'
+import { Route as AdminConfigurationRouteImport } from './routes/admin.configuration'
+import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
+import { Route as AdminEvenementsRouteImport } from './routes/admin.evenements'
+import { Route as AdminFaqRouteImport } from './routes/admin.faq'
+import { Route as AdminHistoriqueRouteImport } from './routes/admin.historique'
+import { Route as AdminJournalRouteImport } from './routes/admin.journal'
+import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
+import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminSitesRouteImport } from './routes/admin.sites'
+import { Route as AdminUtilisateursRouteImport } from './routes/admin.utilisateurs'
+import { Route as AdminVieRouteImport } from './routes/admin.vie'
 import { Route as BatimentIndexRouteImport } from './routes/batiment.index'
 import { Route as BatimentContactsRouteImport } from './routes/batiment.contacts'
 import { Route as BatimentServicesRouteImport } from './routes/batiment.services'
@@ -29,6 +44,11 @@ import { Route as BatimentVieRouteImport } from './routes/batiment.vie'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BatimentRoute = BatimentRouteImport.update({
@@ -86,6 +106,76 @@ const ActualitesIdRoute = ActualitesIdRouteImport.update({
   path: '/actualites/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAccesRoute = AdminAccesRouteImport.update({
+  id: '/acces',
+  path: '/acces',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminActualitesRoute = AdminActualitesRouteImport.update({
+  id: '/actualites',
+  path: '/actualites',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminConfigurationRoute = AdminConfigurationRouteImport.update({
+  id: '/configuration',
+  path: '/configuration',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEvenementsRoute = AdminEvenementsRouteImport.update({
+  id: '/evenements',
+  path: '/evenements',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFaqRoute = AdminFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminHistoriqueRoute = AdminHistoriqueRouteImport.update({
+  id: '/historique',
+  path: '/historique',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminJournalRoute = AdminJournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminServicesRoute = AdminServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSitesRoute = AdminSitesRouteImport.update({
+  id: '/sites',
+  path: '/sites',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
+  id: '/utilisateurs',
+  path: '/utilisateurs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVieRoute = AdminVieRouteImport.update({
+  id: '/vie',
+  path: '/vie',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BatimentIndexRoute = BatimentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -109,6 +199,7 @@ const BatimentVieRoute = BatimentVieRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/batiment': typeof BatimentRouteWithChildren
   '/compte': typeof CompteRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -119,10 +210,24 @@ export interface FileRoutesByFullPath {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/acces': typeof AdminAccesRoute
+  '/admin/actualites': typeof AdminActualitesRoute
+  '/admin/configuration': typeof AdminConfigurationRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/evenements': typeof AdminEvenementsRoute
+  '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
+  '/admin/journal': typeof AdminJournalRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
   '/actualites/': typeof ActualitesIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/batiment/': typeof BatimentIndexRoute
 }
 export interface FileRoutesByTo {
@@ -136,15 +241,30 @@ export interface FileRoutesByTo {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/acces': typeof AdminAccesRoute
+  '/admin/actualites': typeof AdminActualitesRoute
+  '/admin/configuration': typeof AdminConfigurationRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/evenements': typeof AdminEvenementsRoute
+  '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
+  '/admin/journal': typeof AdminJournalRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
   '/actualites': typeof ActualitesIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/batiment': typeof BatimentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/batiment': typeof BatimentRouteWithChildren
   '/compte': typeof CompteRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -155,16 +275,31 @@ export interface FileRoutesById {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/acces': typeof AdminAccesRoute
+  '/admin/actualites': typeof AdminActualitesRoute
+  '/admin/configuration': typeof AdminConfigurationRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/evenements': typeof AdminEvenementsRoute
+  '/admin/faq': typeof AdminFaqRoute
+  '/admin/historique': typeof AdminHistoriqueRoute
+  '/admin/journal': typeof AdminJournalRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/sites': typeof AdminSitesRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
   '/actualites/': typeof ActualitesIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/batiment/': typeof BatimentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/batiment'
     | '/compte'
     | '/confidentialite'
@@ -175,10 +310,24 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/acces'
+    | '/admin/actualites'
+    | '/admin/configuration'
+    | '/admin/contacts'
+    | '/admin/evenements'
+    | '/admin/faq'
+    | '/admin/historique'
+    | '/admin/journal'
+    | '/admin/messages'
+    | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
     | '/actualites/'
+    | '/admin/'
     | '/batiment/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -192,14 +341,29 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/acces'
+    | '/admin/actualites'
+    | '/admin/configuration'
+    | '/admin/contacts'
+    | '/admin/evenements'
+    | '/admin/faq'
+    | '/admin/historique'
+    | '/admin/journal'
+    | '/admin/messages'
+    | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
     | '/actualites'
+    | '/admin'
     | '/batiment'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/batiment'
     | '/compte'
     | '/confidentialite'
@@ -210,15 +374,30 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/acces'
+    | '/admin/actualites'
+    | '/admin/configuration'
+    | '/admin/contacts'
+    | '/admin/evenements'
+    | '/admin/faq'
+    | '/admin/historique'
+    | '/admin/journal'
+    | '/admin/messages'
+    | '/admin/services'
+    | '/admin/sites'
+    | '/admin/utilisateurs'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
     | '/actualites/'
+    | '/admin/'
     | '/batiment/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BatimentRoute: typeof BatimentRouteWithChildren
   CompteRoute: typeof CompteRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
@@ -239,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/batiment': {
@@ -318,6 +504,104 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActualitesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/acces': {
+      id: '/admin/acces'
+      path: '/acces'
+      fullPath: '/admin/acces'
+      preLoaderRoute: typeof AdminAccesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/actualites': {
+      id: '/admin/actualites'
+      path: '/actualites'
+      fullPath: '/admin/actualites'
+      preLoaderRoute: typeof AdminActualitesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/configuration': {
+      id: '/admin/configuration'
+      path: '/configuration'
+      fullPath: '/admin/configuration'
+      preLoaderRoute: typeof AdminConfigurationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/evenements': {
+      id: '/admin/evenements'
+      path: '/evenements'
+      fullPath: '/admin/evenements'
+      preLoaderRoute: typeof AdminEvenementsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/faq': {
+      id: '/admin/faq'
+      path: '/faq'
+      fullPath: '/admin/faq'
+      preLoaderRoute: typeof AdminFaqRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/historique': {
+      id: '/admin/historique'
+      path: '/historique'
+      fullPath: '/admin/historique'
+      preLoaderRoute: typeof AdminHistoriqueRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/journal': {
+      id: '/admin/journal'
+      path: '/journal'
+      fullPath: '/admin/journal'
+      preLoaderRoute: typeof AdminJournalRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/services': {
+      id: '/admin/services'
+      path: '/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AdminServicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sites': {
+      id: '/admin/sites'
+      path: '/sites'
+      fullPath: '/admin/sites'
+      preLoaderRoute: typeof AdminSitesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/utilisateurs': {
+      id: '/admin/utilisateurs'
+      path: '/utilisateurs'
+      fullPath: '/admin/utilisateurs'
+      preLoaderRoute: typeof AdminUtilisateursRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/vie': {
+      id: '/admin/vie'
+      path: '/vie'
+      fullPath: '/admin/vie'
+      preLoaderRoute: typeof AdminVieRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/batiment/': {
       id: '/batiment/'
       path: '/'
@@ -349,6 +633,42 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAccesRoute: typeof AdminAccesRoute
+  AdminActualitesRoute: typeof AdminActualitesRoute
+  AdminConfigurationRoute: typeof AdminConfigurationRoute
+  AdminContactsRoute: typeof AdminContactsRoute
+  AdminEvenementsRoute: typeof AdminEvenementsRoute
+  AdminFaqRoute: typeof AdminFaqRoute
+  AdminHistoriqueRoute: typeof AdminHistoriqueRoute
+  AdminJournalRoute: typeof AdminJournalRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
+  AdminServicesRoute: typeof AdminServicesRoute
+  AdminSitesRoute: typeof AdminSitesRoute
+  AdminUtilisateursRoute: typeof AdminUtilisateursRoute
+  AdminVieRoute: typeof AdminVieRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAccesRoute: AdminAccesRoute,
+  AdminActualitesRoute: AdminActualitesRoute,
+  AdminConfigurationRoute: AdminConfigurationRoute,
+  AdminContactsRoute: AdminContactsRoute,
+  AdminEvenementsRoute: AdminEvenementsRoute,
+  AdminFaqRoute: AdminFaqRoute,
+  AdminHistoriqueRoute: AdminHistoriqueRoute,
+  AdminJournalRoute: AdminJournalRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
+  AdminServicesRoute: AdminServicesRoute,
+  AdminSitesRoute: AdminSitesRoute,
+  AdminUtilisateursRoute: AdminUtilisateursRoute,
+  AdminVieRoute: AdminVieRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface BatimentRouteChildren {
   BatimentContactsRoute: typeof BatimentContactsRoute
   BatimentServicesRoute: typeof BatimentServicesRoute
@@ -369,6 +689,7 @@ const BatimentRouteWithChildren = BatimentRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   BatimentRoute: BatimentRouteWithChildren,
   CompteRoute: CompteRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
