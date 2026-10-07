@@ -21,6 +21,7 @@ function NewsAdmin() {
       intro="Informations, travaux, animations… Enregistrez en brouillon, publiez tout de suite ou programmez une date."
       singular="cette actualité"
       addLabel="Publier une actualité"
+      transform={(v) => ({ ...v, published_at: v["status"] === "draft" ? null : v["published_at"] ? new Date(String(v["published_at"])).toISOString() : new Date().toISOString() })}
       order="created_at"
       ascending={false}
       searchKeys={["title", "summary", "category"]}

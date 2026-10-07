@@ -186,6 +186,7 @@ export type CrudConfig = {
   beforeList?: ReactNode;
   order?: string;
   ascending?: boolean;
+  transform?: (v: Record<string, unknown>) => Record<string, unknown>;
 };
 
 export function CrudPage(c: CrudConfig) {
@@ -212,7 +213,7 @@ export function CrudPage(c: CrudConfig) {
 
   const save = async (v: Record<string, unknown>, id?: string) => {
     for (const f of c.fields) if (f.required && (v[f.name] == null || v[f.name] === "")) throw new Error(`Le champ « ${f.label} » est obligatoire.`);
-    const payload = strip(v);
+    const payload = c.transform ? c.transform(strip(v)) : strip(v);
     if (id) {
       const { error } = await db.from(c.table).update(payload).eq("id", id);
       if (error) throw error;
