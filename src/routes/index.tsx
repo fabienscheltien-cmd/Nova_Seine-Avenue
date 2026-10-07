@@ -26,7 +26,7 @@ function Shortcut({ icon: Icon, label, ...props }: { icon: typeof CalendarDays; 
     </>
   );
   if ("href" in props) return <a href={props.href} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>;
-  return <Link to={props.to} hash={props.to === "/evenements" ? "aujourdhui" : undefined} className={cls}>{inner}</Link>;
+  return <Link to={props.to} {...(props.to === "/evenements" ? { hash: "aujourdhui" } : {})} className={cls}>{inner}</Link>;
 }
 
 function Home() {
