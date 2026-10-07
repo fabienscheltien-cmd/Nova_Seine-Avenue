@@ -106,6 +106,8 @@ export type Database = {
           id: string
           message: string
           name: string
+          replied_at: string | null
+          reply: string | null
           site_id: string
           status: string
           subject: string
@@ -118,6 +120,8 @@ export type Database = {
           id?: string
           message: string
           name: string
+          replied_at?: string | null
+          reply?: string | null
           site_id: string
           status?: string
           subject: string
@@ -130,6 +134,8 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          replied_at?: string | null
+          reply?: string | null
           site_id?: string
           status?: string
           subject?: string
@@ -192,6 +198,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "contacts_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_history: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          entity: string
+          entity_id: string
+          id: string
+          operation: string
+          site_id: string
+          snapshot: Json
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          entity: string
+          entity_id: string
+          id?: string
+          operation: string
+          site_id: string
+          snapshot: Json
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          id?: string
+          operation?: string
+          site_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_history_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
@@ -751,6 +798,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          onboarding_done: boolean
           primary_color: string | null
           reception_email: string | null
           reception_phone: string | null
@@ -765,6 +813,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          onboarding_done?: boolean
           primary_color?: string | null
           reception_email?: string | null
           reception_phone?: string | null
@@ -779,6 +828,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          onboarding_done?: boolean
           primary_color?: string | null
           reception_email?: string | null
           reception_phone?: string | null
