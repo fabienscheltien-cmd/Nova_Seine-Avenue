@@ -234,14 +234,14 @@ export function CrudPage(c: CrudConfig) {
     const firstText = c.fields.find((f) => f.type === "text")?.name;
     if (firstText) rest[firstText] = `${rest[firstText] ?? ""} (copie)`;
     const { error } = await db.from(c.table).insert({ ...rest, ...(c.sortable ? { position: (list.data ?? []).length } : {}) });
-    if (error) return toast.error("La copie a échoué.");
+    if (error) { toast.error("La copie a échoué."); return; }
     toast.success("Copie créée. Pensez à la modifier.");
     invalidate(c.table);
   };
 
   const remove = async (r: Row) => {
     const { error } = await db.from(c.table).delete().eq("id", r.id);
-    if (error) return toast.error("Suppression impossible.");
+    if (error) { toast.error("Suppression impossible."); return; }
     await logActivity(site!.id, "delete", c.table, r.id);
     toast.success("Supprimé. Vous pouvez le restaurer depuis l'historique pendant 30 jours.");
     invalidate(c.table);

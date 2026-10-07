@@ -79,7 +79,7 @@ export function ImageField({ id, value, onChange, maxSize = 1600 }: { id: string
   const [busy, setBusy] = useState(false);
   const pick = async (f?: File) => {
     if (!f) return;
-    if (!f.type.startsWith("image/")) return toast.error("Ce fichier n'est pas une image.");
+    if (!f.type.startsWith("image/")) { toast.error("Ce fichier n'est pas une image."); return; }
     setBusy(true);
     try {
       onChange(await compressImage(f, maxSize));
