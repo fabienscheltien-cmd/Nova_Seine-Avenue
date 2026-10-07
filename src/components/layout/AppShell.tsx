@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode, type FormEvent } from "react";
 import { Home, CalendarDays, CalendarCheck, Building2, User, Search, Newspaper, UtensilsCrossed, Mail } from "lucide-react";
 import { theme } from "@/theme";
@@ -50,6 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: site } = useSite();
   const { user, isAdminOf } = useAuth();
   const isAdmin = !!user && isAdminOf(site?.id);
+  const pathname = useLocation({ select: (l) => l.pathname });
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <>{children}</>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,9 +85,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Search className="h-4 w-4" />
           </Link>
           {isAdmin && (
-            <a href="/admin" className="hidden rounded-full border border-primary/50 px-3 py-1.5 text-xs font-semibold text-brand-light lg:inline-block">
+            <Link to="/admin" className="hidden rounded-full border border-primary/50 px-3 py-1.5 text-xs font-semibold text-brand-light lg:inline-block">
               Gestion
-            </a>
+            </Link>
           )}
           <Link to="/compte" className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground lg:flex">
             <User className="h-4 w-4" aria-hidden /> {user ? t("nav.account") : "Se connecter"}
