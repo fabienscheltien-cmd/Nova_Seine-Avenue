@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BatimentRouteImport } from './routes/batiment'
 import { Route as CompteRouteImport } from './routes/compte'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
@@ -21,6 +22,9 @@ import { Route as ReservationsRouteImport } from './routes/reservations'
 import { Route as RestoRouteImport } from './routes/resto'
 import { Route as ActualitesIndexRouteImport } from './routes/actualites.index'
 import { Route as ActualitesIdRouteImport } from './routes/actualites.$id'
+import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
+import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminVieRouteImport } from './routes/admin.vie'
 import { Route as BatimentIndexRouteImport } from './routes/batiment.index'
 import { Route as BatimentContactsRouteImport } from './routes/batiment.contacts'
 import { Route as BatimentServicesRouteImport } from './routes/batiment.services'
@@ -29,6 +33,11 @@ import { Route as BatimentVieRouteImport } from './routes/batiment.vie'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BatimentRoute = BatimentRouteImport.update({
@@ -86,6 +95,21 @@ const ActualitesIdRoute = ActualitesIdRouteImport.update({
   path: '/actualites/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminServicesRoute = AdminServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVieRoute = AdminVieRouteImport.update({
+  id: '/vie',
+  path: '/vie',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BatimentIndexRoute = BatimentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -109,6 +133,7 @@ const BatimentVieRoute = BatimentVieRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/batiment': typeof BatimentRouteWithChildren
   '/compte': typeof CompteRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -119,6 +144,9 @@ export interface FileRoutesByFullPath {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
@@ -127,6 +155,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/compte': typeof CompteRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/contact': typeof ContactRoute
@@ -136,6 +165,9 @@ export interface FileRoutesByTo {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
@@ -145,6 +177,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/batiment': typeof BatimentRouteWithChildren
   '/compte': typeof CompteRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -155,6 +188,9 @@ export interface FileRoutesById {
   '/reservations': typeof ReservationsRoute
   '/resto': typeof RestoRoute
   '/actualites/$id': typeof ActualitesIdRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/services': typeof AdminServicesRoute
+  '/admin/vie': typeof AdminVieRoute
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
@@ -165,6 +201,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/batiment'
     | '/compte'
     | '/confidentialite'
@@ -175,6 +212,9 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/contacts'
+    | '/admin/services'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
@@ -183,6 +223,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/compte'
     | '/confidentialite'
     | '/contact'
@@ -192,6 +233,9 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/contacts'
+    | '/admin/services'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
@@ -200,6 +244,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/batiment'
     | '/compte'
     | '/confidentialite'
@@ -210,6 +255,9 @@ export interface FileRouteTypes {
     | '/reservations'
     | '/resto'
     | '/actualites/$id'
+    | '/admin/contacts'
+    | '/admin/services'
+    | '/admin/vie'
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
@@ -219,6 +267,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BatimentRoute: typeof BatimentRouteWithChildren
   CompteRoute: typeof CompteRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
@@ -239,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/batiment': {
@@ -318,6 +374,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActualitesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/services': {
+      id: '/admin/services'
+      path: '/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AdminServicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/vie': {
+      id: '/admin/vie'
+      path: '/vie'
+      fullPath: '/admin/vie'
+      preLoaderRoute: typeof AdminVieRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/batiment/': {
       id: '/batiment/'
       path: '/'
@@ -349,6 +426,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminContactsRoute: typeof AdminContactsRoute
+  AdminServicesRoute: typeof AdminServicesRoute
+  AdminVieRoute: typeof AdminVieRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminContactsRoute: AdminContactsRoute,
+  AdminServicesRoute: AdminServicesRoute,
+  AdminVieRoute: AdminVieRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface BatimentRouteChildren {
   BatimentContactsRoute: typeof BatimentContactsRoute
   BatimentServicesRoute: typeof BatimentServicesRoute
@@ -369,6 +460,7 @@ const BatimentRouteWithChildren = BatimentRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   BatimentRoute: BatimentRouteWithChildren,
   CompteRoute: CompteRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
