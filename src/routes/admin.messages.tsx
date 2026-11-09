@@ -70,6 +70,14 @@ function AdminMessages() {
                   <div className="border-t border-border px-4 py-3">
                     <p className="text-sm text-muted-foreground">De : {m.name} &lt;{m.email}&gt;</p>
                     <p className="mt-3 whitespace-pre-line">{m.message}</p>
+                    {m.reply && (
+                      <div className="mt-4 rounded-xl border border-border bg-background p-3">
+                        <p className="text-sm font-semibold">
+                          Votre réponse{m.replied_at && ` du ${format(new Date(m.replied_at), "d MMM yyyy 'à' HH:mm", { locale: fr })}`}
+                        </p>
+                        <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{m.reply}</p>
+                      </div>
+                    )}
                     {canSend && <ReplyForm message={m} />}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <a href={replyLink(m)} className={canSend ? btnSecondary : btnPrimary} onClick={() => m.status === "new" && setStatus(m, "handled")}>

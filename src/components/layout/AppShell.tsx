@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode, type FormEvent } from "react";
 import { Home, CalendarDays, CalendarCheck, Building2, User, Search, Newspaper, UtensilsCrossed, Mail } from "lucide-react";
 import { theme } from "@/theme";
@@ -50,6 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: site } = useSite();
   const { user, isAdminOf } = useAuth();
   const isAdmin = !!user && isAdminOf(site?.id);
+  const pathname = useLocation({ select: (l) => l.pathname });
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <>{children}</>;
 
   return (
     <div className="min-h-screen bg-background">

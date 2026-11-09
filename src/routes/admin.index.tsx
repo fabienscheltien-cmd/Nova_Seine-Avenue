@@ -60,7 +60,7 @@ function Dashboard() {
   const { profile, roles } = useAuth();
   const { site } = useAdminSite();
   // Assistant de première connexion : admins de ce site qui ne l'ont ni terminé ni passé.
-  const showOnboarding = !!site && !!profile && !profile.admin_onboarded_at
+  const showOnboarding = !!site && !site.onboarding_done
     && roles.some((r) => r.role === "site_admin" && r.site_id === site.id);
   const { data, isLoading } = useDashboard(siteId);
 

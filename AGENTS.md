@@ -8,3 +8,11 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture rules
+- Admin back-office lives under `src/routes/admin*.tsx`; simple site-scoped modules use the generic `CrudModule` (src/components/admin) — keeps modules consistent and small. The managed site comes from `useAdminSite()` (src/lib/admin-site.tsx).
+- Privileged actions (registrants, cancellation e-mails, access and account management) are server functions in `src/lib/admin.functions.ts`, each re-checking the caller's role.
+- Uploaded images are compressed client-side and stored as data URLs in `image_url` columns — the workspace blocks public storage buckets.
+- Content history is recorded by the `record_history` DB trigger into `content_history` (30-day retention) — restore reads snapshots from there.
+- Users may only update their personal profile columns; `profiles.email` is written server-side from the verified login e-mail.
+- Checks: `npm test` (unit), `npm run test:db` (migrations + RLS on a throwaway PostgreSQL 16, see supabase/tests).

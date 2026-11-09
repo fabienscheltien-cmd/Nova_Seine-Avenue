@@ -212,7 +212,7 @@ export const replyToMessage = createServerFn({ method: "POST" })
       subject: `Re : ${msg.subject}`,
       text: `${data.body}\n\n—\nL'accueil ${site?.name ?? ""}\n\nVotre message :\n${quoted}`,
     });
-    await db.from("contact_messages").update({ status: "handled" }).eq("id", msg.id);
+    await db.from("contact_messages").update({ status: "handled", reply: data.body, replied_at: new Date().toISOString() }).eq("id", msg.id);
     await log(context, msg.site_id, "contact_messages.reply", "contact_messages", msg.id, { email: msg.email });
     return { ok: true };
   });

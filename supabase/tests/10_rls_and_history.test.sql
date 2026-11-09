@@ -72,8 +72,8 @@ WITH u AS (UPDATE public.profiles SET first_name = 'Moi' WHERE id = 'aaaaaaaa-00
 SELECT t.check('occupant : modifie son propre profil', (SELECT count(*) FROM u) = 1);
 WITH u AS (UPDATE public.profiles SET first_name = 'Pirate' WHERE id = 'aaaaaaaa-0000-4000-8000-000000000005' RETURNING 1)
 SELECT t.check('occupant : ne modifie pas le profil d''un autre', (SELECT count(*) FROM u) = 0);
-WITH u AS (UPDATE public.profiles SET admin_onboarded_at = now() WHERE id = 'aaaaaaaa-0000-4000-8000-000000000003' RETURNING 1)
-SELECT t.check('occupant : peut marquer son assistant comme vu (colonne sans enjeu de sécurité)', (SELECT count(*) FROM u) = 1);
+WITH u AS (UPDATE public.sites SET onboarding_done = true RETURNING 1)
+SELECT t.check('occupant : ne peut pas modifier un site (dont l''assistant de première connexion)', (SELECT count(*) FROM u) = 0);
 DO $$ BEGIN UPDATE public.profiles SET email = 'remplacante@example.fr' WHERE id = 'aaaaaaaa-0000-4000-8000-000000000003';
   PERFORM t.check('occupant : ne peut pas changer l''e-mail de son profil (usurpation d''invitation)', false);
 EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('occupant : ne peut pas changer l''e-mail de son profil (usurpation d''invitation)', true); END $$;
@@ -110,8 +110,10 @@ SELECT t.check('admin site : ajoute une question FAQ', (SELECT count(*) FROM pub
 DO $$ BEGIN INSERT INTO public.news (site_id, title) VALUES ('5e1e0000-0000-4000-8000-000000000002', 'intrus');
   PERFORM t.check('admin site : ne peut pas écrire sur un autre site', false);
 EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('admin site : ne peut pas écrire sur un autre site', true); END $$;
-WITH u AS (UPDATE public.sites SET reception_email = 'accueil@seine.fr' WHERE id = '5e1e0000-0000-4000-8000-000000000001' RETURNING 1)
-SELECT t.check('admin site : modifie la configuration de son site', (SELECT count(*) FROM u) = 1);
+WITH u AS (UPDATE public.sites SET reception_email = 'accueil@seine.fr', onboarding_done = true WHERE id = '5e1e0000-0000-4000-8000-000000000001' RETURNING 1)
+SELECT t.check('admin site : modifie la configuration de son site et termine l''assistant', (SELECT count(*) FROM u) = 1);
+WITH u AS (UPDATE public.contact_messages SET status = 'handled', reply = 'Bonjour Paul', replied_at = now() RETURNING 1)
+SELECT t.check('admin site : enregistre une réponse sur les messages de son site uniquement', (SELECT count(*) FROM u) = 1);
 WITH u AS (UPDATE public.sites SET name = 'Piraté' WHERE id = '5e1e0000-0000-4000-8000-000000000002' RETURNING 1)
 SELECT t.check('admin site : ne modifie pas un autre site', (SELECT count(*) FROM u) = 0);
 DO $$ BEGIN INSERT INTO public.sites (name, slug) VALUES ('Nouveau', 'nouveau');
@@ -123,44 +125,30 @@ SELECT t.check('admin site : ne lit pas les rôles d''un autre site', NOT EXISTS
 DO $$ BEGIN INSERT INTO public.activity_log (actor_id, action) VALUES ('aaaaaaaa-0000-4000-8000-000000000001', 'usurpation');
   PERFORM t.check('admin site : ne peut pas écrire au journal au nom d''un autre', false);
 EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('admin site : ne peut pas écrire au journal au nom d''un autre', true); END $$;
--- Stockage d'images
-INSERT INTO storage.objects (bucket_id, name) VALUES ('media', '5e1e0000-0000-4000-8000-000000000001/photo.jpg');
-SELECT t.check('admin site : téléverse une image dans le dossier de son site', true);
-DO $$ BEGIN INSERT INTO storage.objects (bucket_id, name) VALUES ('media', '5e1e0000-0000-4000-8000-000000000002/photo.jpg');
-  PERFORM t.check('admin site : ne téléverse pas dans le dossier d''un autre site', false);
-EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('admin site : ne téléverse pas dans le dossier d''un autre site', true); END $$;
-COMMIT;
-BEGIN; SET LOCAL ROLE anon;
-SELECT t.check('anon : le bucket « media » est public en lecture', (SELECT public FROM storage.buckets WHERE id = 'media') AND (SELECT count(*) FROM storage.objects) = 1);
-COMMIT;
-BEGIN; SELECT t.as_user('aaaaaaaa-0000-4000-8000-000000000003', 'occupant@example.fr');
-DO $$ BEGIN INSERT INTO storage.objects (bucket_id, name) VALUES ('media', '5e1e0000-0000-4000-8000-000000000001/x.jpg');
-  PERFORM t.check('occupant : ne peut pas téléverser d''image', false);
-EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('occupant : ne peut pas téléverser d''image', true); END $$;
 COMMIT;
 
 -- ===== 4. Historique des modifications =====
 BEGIN; SELECT t.as_user('aaaaaaaa-0000-4000-8000-000000000002', 'sterenn@example.fr');
 UPDATE public.faq_items SET answer = 'Nouvelle réponse' WHERE id = '44444444-0000-4000-8000-000000000001';
 SELECT t.check('historique : une modification garde l''ancienne version et son auteur',
-  (SELECT old_data ->> 'answer' = 'À l''accueil' AND changed_by_email = 'sterenn@example.fr' AND operation = 'update'
-   FROM public.content_history WHERE row_id = '44444444-0000-4000-8000-000000000001'));
+  (SELECT snapshot ->> 'answer' = 'À l''accueil' AND actor_email = 'sterenn@example.fr' AND operation = 'update'
+   FROM public.content_history WHERE entity_id = '44444444-0000-4000-8000-000000000001'));
 UPDATE public.faq_items SET position = 7 WHERE id = '44444444-0000-4000-8000-000000000001';
 SELECT t.check('historique : un simple changement d''ordre n''est pas historisé',
-  (SELECT count(*) FROM public.content_history WHERE row_id = '44444444-0000-4000-8000-000000000001') = 1);
+  (SELECT count(*) FROM public.content_history WHERE entity_id = '44444444-0000-4000-8000-000000000001') = 1);
 SELECT t.check('historique : une inscription ne crée pas d''entrée sur l''événement',
-  NOT EXISTS (SELECT 1 FROM public.content_history WHERE table_name = 'events'));
+  NOT EXISTS (SELECT 1 FROM public.content_history WHERE entity = 'events'));
 DELETE FROM public.news WHERE id = '11111111-0000-4000-8000-000000000001';
 SELECT t.check('historique : une suppression est historisée',
-  EXISTS (SELECT 1 FROM public.content_history WHERE row_id = '11111111-0000-4000-8000-000000000001' AND operation = 'delete'));
+  EXISTS (SELECT 1 FROM public.content_history WHERE entity_id = '11111111-0000-4000-8000-000000000001' AND operation = 'delete'));
 -- Restauration comme dans l'interface : réinsertion de l'ancienne version, sans colonnes système.
 INSERT INTO public.news (id, site_id, title, summary, content, category, image_url, status, published_at, created_by)
   SELECT r.id, r.site_id, r.title, r.summary, r.content, r.category, r.image_url, r.status, r.published_at, r.created_by
-  FROM public.content_history h, jsonb_populate_record(NULL::public.news, h.old_data) r
-  WHERE h.row_id = '11111111-0000-4000-8000-000000000001';
+  FROM public.content_history h, jsonb_populate_record(NULL::public.news, h.snapshot) r
+  WHERE h.entity_id = '11111111-0000-4000-8000-000000000001';
 SELECT t.check('historique : l''actualité supprimée est restaurée avec le même identifiant',
   EXISTS (SELECT 1 FROM public.news WHERE id = '11111111-0000-4000-8000-000000000001' AND title = 'Publiée'));
-DO $$ BEGIN INSERT INTO public.content_history (table_name, row_id, operation, old_data) VALUES ('news', gen_random_uuid(), 'update', '{}');
+DO $$ BEGIN INSERT INTO public.content_history (site_id, entity, entity_id, operation, snapshot) VALUES ('5e1e0000-0000-4000-8000-000000000001', 'news', gen_random_uuid(), 'update', '{}');
   PERFORM t.check('historique : impossible d''y écrire directement', false);
 EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('historique : impossible d''y écrire directement', true); END $$;
 COMMIT;
@@ -168,7 +156,7 @@ BEGIN; SELECT t.as_user('aaaaaaaa-0000-4000-8000-000000000004', 'admin2@example.
 SELECT t.check('historique : l''admin d''un autre site ne le voit pas', (SELECT count(*) FROM public.content_history) = 0);
 COMMIT;
 -- Purge à 30 jours : une entrée ancienne disparaît à la prochaine modification.
-INSERT INTO public.content_history (site_id, table_name, row_id, operation, old_data, created_at)
+INSERT INTO public.content_history (site_id, entity, entity_id, operation, snapshot, created_at)
   VALUES ('5e1e0000-0000-4000-8000-000000000001', 'news', gen_random_uuid(), 'update', '{}', now() - interval '31 days');
 UPDATE public.news SET title = 'Publiée (modifiée)' WHERE id = '11111111-0000-4000-8000-000000000001';
 SELECT t.check('historique : les entrées de plus de 30 jours sont purgées',

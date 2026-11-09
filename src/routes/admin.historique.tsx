@@ -19,7 +19,7 @@ const entityLabel: Record<string, string> = {
 // Colonnes gérées par la base, jamais réécrites lors d'une restauration.
 const SYSTEM_COLUMNS = ["created_at", "updated_at", "registered_count"];
 
-type Entry = { id: string; table_name: string; row_id: string; operation: string; old_data: Record<string, unknown>; changed_by_email: string | null; created_at: string };
+type Entry = { id: string; entity: string; entity_id: string; operation: string; snapshot: Record<string, unknown>; actor_email: string | null; created_at: string };
 
 function titleOf(d: Record<string, unknown>) {
   return String(d["title"] ?? d["name"] ?? d["question"] ?? d["role_label"] ?? "Sans titre");
@@ -58,21 +58,21 @@ function AdminHistory() {
   });
 
   const restore = async (h: Entry) => {
-    const values = Object.fromEntries(Object.entries(h.old_data).filter(([k]) => !SYSTEM_COLUMNS.includes(k)));
+    const values = Object.fromEntries(Object.entries(h.snapshot).filter(([k]) => !SYSTEM_COLUMNS.includes(k)));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const t = supabase.from(h.table_name as "news") as any;
-    const { error } = h.operation === "delete" ? await t.insert(values) : await t.update(values).eq("id", h.row_id);
+    const t = supabase.from(h.entity as "news") as any;
+    const { error } = h.operation === "delete" ? await t.insert(values) : await t.update(values).eq("id", h.entity_id);
     if (error) {
       toast.error(error.code === "23505" ? "Cet élément existe déjà : restaurez plutôt une version de modification." : "Restauration impossible");
       return;
     }
-    await logActivity(siteId, `${h.table_name}.restore`, h.table_name, h.row_id, { title: titleOf(h.old_data) });
+    await logActivity(siteId, `${h.entity}.restore`, h.entity, h.entity_id, { title: titleOf(h.snapshot) });
     qc.invalidateQueries();
     toast.success("Version restaurée");
   };
 
-  const list = (history.data ?? []).filter((h) => !table || h.table_name === table);
-  const tables = [...new Set((history.data ?? []).map((h) => h.table_name))];
+  const list = (history.data ?? []).filter((h) => !table || h.entity === table);
+  const tables = [...new Set((history.data ?? []).map((h) => h.entity))];
 
   return (
     <div>
@@ -94,26 +94,26 @@ function AdminHistory() {
             <li key={h.id} className="flex flex-wrap items-start gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
-                  {entityLabel[h.table_name] ?? h.table_name} · {titleOf(h.old_data)}
+                  {entityLabel[h.entity] ?? h.entity} · {titleOf(h.snapshot)}
                   <span className={`ml-2 rounded-full border px-2 text-xs font-normal ${h.operation === "delete" ? "border-destructive/50 text-destructive" : "border-border text-muted-foreground"}`}>
                     {h.operation === "delete" ? "Supprimé" : "Modifié"}
                   </span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(h.created_at), "d MMM yyyy 'à' HH:mm", { locale: fr })}{h.changed_by_email && ` · par ${h.changed_by_email}`}
+                  {format(new Date(h.created_at), "d MMM yyyy 'à' HH:mm", { locale: fr })}{h.actor_email && ` · par ${h.actor_email}`}
                 </p>
                 <details className="mt-1 text-sm">
                   <summary className="cursor-pointer text-brand-light">Voir la version {h.operation === "delete" ? "supprimée" : "précédente"}</summary>
                   <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                    {summary(h.old_data).map((line) => <li key={line}>{line}</li>)}
+                    {summary(h.snapshot).map((line) => <li key={line}>{line}</li>)}
                   </ul>
                 </details>
               </div>
               <ConfirmButton
                 label="Restaurer" title="Restaurer cette version ?" confirmLabel="Restaurer"
                 description={h.operation === "delete"
-                  ? `« ${titleOf(h.old_data)} » sera remis en place tel qu'il était avant sa suppression.`
-                  : `« ${titleOf(h.old_data)} » reprendra son contenu du ${format(new Date(h.created_at), "d MMM 'à' HH:mm", { locale: fr })}. La version actuelle restera dans l'historique.`}
+                  ? `« ${titleOf(h.snapshot)} » sera remis en place tel qu'il était avant sa suppression.`
+                  : `« ${titleOf(h.snapshot)} » reprendra son contenu du ${format(new Date(h.created_at), "d MMM 'à' HH:mm", { locale: fr })}. La version actuelle restera dans l'historique.`}
                 onConfirm={() => restore(h)}
                 destructive={false}
                 className={btnSecondary}

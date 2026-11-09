@@ -18,7 +18,7 @@ function readStep() {
 
 /** Assistant de première connexion de l'admin de site : 4 étapes guidées. */
 export function Onboarding({ site }: { site: SiteRow }) {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const qc = useQueryClient();
   const [step, setStepState] = useState(readStep);
   const setStep = (n: number) => { setStepState(n); try { localStorage.setItem(STEP_KEY, String(n)); } catch { /* indisponible */ } };
@@ -37,10 +37,11 @@ export function Onboarding({ site }: { site: SiteRow }) {
   });
 
   const finish = async () => {
-    if (!user) return;
-    await supabase.from("profiles").update({ admin_onboarded_at: new Date().toISOString() }).eq("id", user.id);
+    const { error } = await supabase.from("sites").update({ onboarding_done: true }).eq("id", site.id);
+    if (error) return void toast.error("Enregistrement impossible");
     try { localStorage.removeItem(STEP_KEY); } catch { /* indisponible */ }
-    qc.invalidateQueries({ queryKey: ["me"] });
+    await logActivity(site.id, "sites.onboarding_done", "sites", site.id);
+    qc.invalidateQueries({ queryKey: ["admin-sites"] });
   };
 
   const done = [

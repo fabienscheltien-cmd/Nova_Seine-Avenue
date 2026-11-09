@@ -99,42 +99,6 @@ export type Database = {
           },
         ]
       }
-      content_history: {
-        Row: {
-          changed_by: string | null
-          changed_by_email: string | null
-          created_at: string
-          id: string
-          old_data: Json
-          operation: string
-          row_id: string
-          site_id: string | null
-          table_name: string
-        }
-        Insert: {
-          changed_by?: string | null
-          changed_by_email?: string | null
-          created_at?: string
-          id?: string
-          old_data: Json
-          operation: string
-          row_id: string
-          site_id?: string | null
-          table_name: string
-        }
-        Update: {
-          changed_by?: string | null
-          changed_by_email?: string | null
-          created_at?: string
-          id?: string
-          old_data?: Json
-          operation?: string
-          row_id?: string
-          site_id?: string | null
-          table_name?: string
-        }
-        Relationships: []
-      }
       contact_messages: {
         Row: {
           created_at: string
@@ -142,6 +106,8 @@ export type Database = {
           id: string
           message: string
           name: string
+          replied_at: string | null
+          reply: string | null
           site_id: string
           status: string
           subject: string
@@ -154,6 +120,8 @@ export type Database = {
           id?: string
           message: string
           name: string
+          replied_at?: string | null
+          reply?: string | null
           site_id: string
           status?: string
           subject: string
@@ -166,6 +134,8 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          replied_at?: string | null
+          reply?: string | null
           site_id?: string
           status?: string
           subject?: string
@@ -228,6 +198,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "contacts_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_history: {
+        Row: {
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          entity: string
+          entity_id: string
+          id: string
+          operation: string
+          site_id: string
+          snapshot: Json
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity: string
+          entity_id: string
+          id?: string
+          operation: string
+          site_id: string
+          snapshot: Json
+        }
+        Update: {
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          id?: string
+          operation?: string
+          site_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_history_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
@@ -634,7 +648,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          admin_onboarded_at: string | null
           company: string | null
           created_at: string
           email: string | null
@@ -649,7 +662,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          admin_onboarded_at?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -664,7 +676,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          admin_onboarded_at?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -790,6 +801,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          onboarding_done: boolean
           primary_color: string | null
           reception_email: string | null
           reception_phone: string | null
@@ -804,6 +816,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          onboarding_done?: boolean
           primary_color?: string | null
           reception_email?: string | null
           reception_phone?: string | null
@@ -818,6 +831,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          onboarding_done?: boolean
           primary_color?: string | null
           reception_email?: string | null
           reception_phone?: string | null

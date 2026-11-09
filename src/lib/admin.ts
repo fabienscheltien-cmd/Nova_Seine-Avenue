@@ -106,27 +106,32 @@ export async function reorderRows(table: AdminTable, ids: string[]) {
   if (failed) throw failed.error;
 }
 
-/** Redimensionne et compresse une image avant téléversement (1600 px max, JPEG). */
-async function compressImage(file: File, maxSize = 1600, quality = 0.82): Promise<Blob> {
-  if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.type === "image/gif") return file;
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Image illisible"))), "image/jpeg", quality));
-}
+/** Taille maximale d'une image après compression (elle est stockée dans la base). */
+const MAX_IMAGE_BYTES = 1_500_000;
 
-export async function uploadImage(siteId: string, file: File): Promise<string> {
-  if (file.size > 20 * 1024 * 1024) throw new Error("Image trop lourde (20 Mo maximum)");
-  const blob = await compressImage(file);
-  const ext = blob.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() || "img").toLowerCase();
-  const path = `${siteId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from("media").upload(path, blob, { contentType: blob.type, cacheControl: "31536000" });
-  if (error) throw new Error("Téléversement impossible : " + error.message);
-  return supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+/**
+ * Redimensionne (1600 px max) et compresse une image en data URL WebP, ou JPEG à défaut.
+ * Les images sont stockées dans la base : l'espace de travail interdit les buckets publics.
+ */
+export async function uploadImage(_siteId: string, file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Choisissez un fichier image (JPEG, PNG, WebP…).");
+  if (file.size > 20 * 1024 * 1024) throw new Error("Image trop lourde (20 Mo maximum).");
+  const bitmap = await createImageBitmap(file).catch(() => { throw new Error("Image illisible."); });
+  const encode = (max: number, quality: number) => {
+    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const webp = canvas.toDataURL("image/webp", quality);
+    return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", quality);
+  };
+  // Réduit encore si l'image reste trop lourde (photos très détaillées).
+  for (const [max, quality] of [[1600, 0.8], [1280, 0.72], [960, 0.65]] as const) {
+    const url = encode(max, quality);
+    if (url.length <= MAX_IMAGE_BYTES) return url;
+  }
+  throw new Error("Image trop détaillée : recadrez-la ou choisissez-en une plus légère.");
 }
 
 /** Valeur pour <input type="datetime-local"> à partir d'une date ISO (heure locale). */

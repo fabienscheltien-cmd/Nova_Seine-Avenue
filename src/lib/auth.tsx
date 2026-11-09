@@ -8,7 +8,7 @@ type Role = { role: "super_admin" | "site_admin" | "occupant"; site_id: string |
 type AuthState = {
   user: User | null;
   ready: boolean;
-  profile: { first_name: string | null; last_name: string | null; company: string | null; floor: string | null; newsletter_opt_in: boolean; notifications_opt_in: boolean; email: string | null; admin_onboarded_at?: string | null } | null;
+  profile: { first_name: string | null; last_name: string | null; company: string | null; floor: string | null; newsletter_opt_in: boolean; notifications_opt_in: boolean; email: string | null } | null;
   roles: Role[];
   /** Rôles chargés (ou aucun utilisateur connecté). */
   rolesReady: boolean;
