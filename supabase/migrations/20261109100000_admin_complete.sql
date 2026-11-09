@@ -60,3 +60,25 @@ REVOKE EXECUTE ON FUNCTION public.protect_last_super_admin() FROM PUBLIC, anon, 
 DROP TRIGGER IF EXISTS protect_last_super_admin ON public.user_roles;
 CREATE TRIGGER protect_last_super_admin BEFORE UPDATE OR DELETE ON public.user_roles
   FOR EACH ROW EXECUTE FUNCTION public.protect_last_super_admin();
+
+-- ===== Images =====
+-- Stockées une seule fois dans la base (l'espace de travail interdit les buckets publics)
+-- et servies par la route /media/<id> avec mise en cache : les fiches ne portent qu'une adresse courte,
+-- et une image partagée par toute une série d'événements n'est enregistrée qu'une fois.
+CREATE TABLE public.media (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  site_id uuid NOT NULL REFERENCES public.sites(id) ON DELETE CASCADE,
+  data_url text NOT NULL CHECK (data_url ~ '^data:image/(webp|jpeg|png|gif);base64,' AND length(data_url) <= 2000000),
+  created_by uuid DEFAULT auth.uid(),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+-- Lecture uniquement par le serveur (route /media), à partir d'un identifiant impossible à deviner :
+-- personne ne peut lister les images, notamment celles d'un brouillon.
+REVOKE ALL ON public.media FROM anon, authenticated;
+GRANT INSERT, DELETE ON public.media TO authenticated;
+GRANT ALL ON public.media TO service_role;
+ALTER TABLE public.media ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins add media" ON public.media FOR INSERT TO authenticated
+  WITH CHECK (public.is_site_admin(auth.uid(), site_id));
+CREATE POLICY "Admins delete media" ON public.media FOR DELETE TO authenticated
+  USING (public.is_site_admin(auth.uid(), site_id));

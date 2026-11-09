@@ -71,7 +71,7 @@
   --popover-foreground: #e8eef5;
   --muted-foreground: #a8b8cb;
   /* Bleus de marque */
-  --primary: #4084c8;
+  --primary: #3577b9; /* contraste AA (4,7:1) avec le texte blanc */
   --primary-foreground: #ffffff;
   --brand-light: #8fb6dc;
   --secondary: #142b45;
@@ -94,7 +94,7 @@
   --cat-other: #b3a5d9;
   --sidebar: #0e2036;
   --sidebar-foreground: #e8eef5;
-  --sidebar-primary: #4084c8;
+  --sidebar-primary: #3577b9;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #142b45;
   --sidebar-accent-foreground: #e8eef5;

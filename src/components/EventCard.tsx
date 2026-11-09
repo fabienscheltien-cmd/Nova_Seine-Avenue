@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarPlus, Clock, MapPin, Users } from "lucide-react";
+import { CalendarPlus, Clock, MapPin, Share2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -19,7 +19,8 @@ const statusLabel = {
   cancelled: t("events.status.cancelled"),
 };
 
-export function EventCard({ event, showDate = false }: { event: EventRow; showDate?: boolean }) {
+/** Carte d'événement ; en mode « detailed », description complète et partage (page de détail). */
+export function EventCard({ event, showDate = false, detailed = false }: { event: EventRow; showDate?: boolean; detailed?: boolean }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: regs } = useMyRegistrations(user?.id);
@@ -52,9 +53,9 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
     status === "open" ? "text-success" : status === "full" ? "text-warning" : "text-muted-foreground";
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row">
+    <article className={`flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 ${detailed ? "" : "sm:flex-row"}`}>
       {event.image_url && (
-        <img src={event.image_url} alt="" className="h-32 w-full rounded-xl object-cover sm:h-24 sm:w-32" loading="lazy" />
+        <img src={event.image_url} alt="" className={detailed ? "aspect-[16/7] w-full rounded-xl object-cover" : "h-32 w-full rounded-xl object-cover sm:h-24 sm:w-32"} loading="lazy" />
       )}
       <div className="flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -65,11 +66,17 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
           )}
           <span className={`text-xs font-semibold ${statusTone}`}>{statusLabel[status]}</span>
         </div>
-        <h3 className={`mt-1.5 text-lg font-semibold ${status === "cancelled" ? "line-through" : ""}`}>{event.title}</h3>
+        {detailed ? (
+          <h1 className={`mt-1.5 text-2xl font-bold tracking-tight ${status === "cancelled" ? "line-through" : ""}`}>{event.title}</h1>
+        ) : (
+          <h3 className={`mt-1.5 text-lg font-semibold ${status === "cancelled" ? "line-through" : ""}`}>
+            <Link to="/evenements/$id" params={{ id: event.id }} className="hover:text-brand-light hover:underline">{event.title}</Link>
+          </h3>
+        )}
         <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <li className="flex items-center gap-1.5">
             <Clock className="h-4 w-4" aria-hidden />
-            {showDate && <span className="capitalize">{format(start, "EEE d MMM", { locale: fr })} ·</span>}
+            {(showDate || detailed) && <span className="capitalize">{format(start, detailed ? "EEEE d MMMM" : "EEE d MMM", { locale: fr })} ·</span>}
             {format(start, "HH:mm")} – {format(end, "HH:mm")}
           </li>
           {event.location && (
@@ -82,7 +89,18 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
             </li>
           )}
         </ul>
-        {event.description && <p className="mt-2 line-clamp-3 text-sm">{event.description}</p>}
+        {event.description && (
+          detailed ? <p className="mt-3 whitespace-pre-line">{event.description}</p> : (
+            <p className="mt-2 line-clamp-3 text-sm">
+              {event.description}
+            </p>
+          )
+        )}
+        {!detailed && event.description && event.description.length > 160 && (
+          <Link to="/evenements/$id" params={{ id: event.id }} className="mt-1 inline-block text-sm font-semibold text-brand-light underline">
+            Lire la suite<span className="sr-only"> : {event.title}</span>
+          </Link>
+        )}
         <div className="mt-3 flex flex-wrap gap-2">
           {status !== "ended" && status !== "cancelled" && (
             user ? (
@@ -100,7 +118,7 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
               )
             ) : (
               status === "open" && (
-                <Link to="/compte" className="inline-flex h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">
+                <Link to="/compte" search={{ retour: `/evenements/${event.id}` }} className="inline-flex h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">
                   {t("events.loginToRegister")}
                 </Link>
               )
@@ -115,8 +133,25 @@ export function EventCard({ event, showDate = false }: { event: EventRow; showDa
               <CalendarPlus className="h-4 w-4" aria-hidden /> {t("events.addToCalendar")}
             </button>
           )}
+          {detailed && <ShareButton title={event.title} />}
         </div>
       </div>
     </article>
+  );
+}
+
+/** Partage natif sur mobile, sinon copie du lien. */
+function ShareButton({ title }: { title: string }) {
+  const share = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title, url });
+      else { await navigator.clipboard.writeText(url); toast.success("Lien copié"); }
+    } catch { /* partage annulé */ }
+  };
+  return (
+    <button type="button" onClick={share} className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-4 text-sm">
+      <Share2 className="h-4 w-4" aria-hidden /> Partager
+    </button>
   );
 }

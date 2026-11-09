@@ -2,15 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useFaqItems, useFaqThemes } from "@/lib/data";
-import { EmptyState, Loading } from "@/components/common";
+import { EmptyState, ErrorState, Loading } from "@/components/common";
 
-export const Route = createFileRoute("/batiment/")({ component: Faq });
+export const Route = createFileRoute("/batiment/")({
+  validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s["q"] === "string" && s["q"] ? { q: s["q"].slice(0, 200) } : {}),
+  component: Faq,
+});
 
 function Faq() {
   const themes = useFaqThemes();
   const items = useFaqItems();
-  const [q, setQ] = useState("");
+  const initial = Route.useSearch().q ?? "";
+  const [q, setQ] = useState(initial);
   if (themes.isLoading || items.isLoading) return <Loading />;
+  if (themes.isError || items.isError) return <ErrorState onRetry={() => { themes.refetch(); items.refetch(); }} />;
   const needle = q.toLowerCase();
   const match = (items.data ?? []).filter((i) => !needle || (i.question + " " + i.answer).toLowerCase().includes(needle));
   const groups = (themes.data ?? []).map((th) => ({ th, list: match.filter((i) => i.theme_id === th.id) })).filter((g) => g.list.length);
@@ -23,7 +28,7 @@ function Faq() {
         groups.map(({ th, list }) => (
           <section key={th.id} className="mb-6">
             <h2 className="mb-2 font-semibold">{th.name}</h2>
-            <Accordion type="multiple" className="rounded-2xl border border-border bg-card px-4">
+            <Accordion type="multiple" defaultValue={initial ? list.map((i) => i.id) : []} className="rounded-2xl border border-border bg-card px-4">
               {list.map((i) => (
                 <AccordionItem key={i.id} value={i.id}>
                   <AccordionTrigger className="text-left">{i.question}</AccordionTrigger>

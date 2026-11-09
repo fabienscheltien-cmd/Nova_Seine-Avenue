@@ -184,7 +184,36 @@ SELECT t.check('déconnexion forcée (serveur) : sessions et jetons de rafraîch
   NOT EXISTS (SELECT 1 FROM auth.sessions WHERE user_id = 'aaaaaaaa-0000-4000-8000-000000000005')
   AND NOT EXISTS (SELECT 1 FROM auth.refresh_tokens WHERE user_id = 'aaaaaaaa-0000-4000-8000-000000000005'));
 
--- ===== 7. Dernier super-admin =====
+-- ===== 7. Images =====
+BEGIN; SELECT t.as_user('aaaaaaaa-0000-4000-8000-000000000002', 'sterenn@example.fr');
+INSERT INTO public.media (id, site_id, data_url) VALUES ('55555555-0000-4000-8000-000000000001', '5e1e0000-0000-4000-8000-000000000001', 'data:image/webp;base64,UklGRg==');
+SELECT t.check('images : l''admin du site enregistre une image', true);
+DO $$ BEGIN INSERT INTO public.media (site_id, data_url) VALUES ('5e1e0000-0000-4000-8000-000000000003', 'data:image/webp;base64,UklGRg==');
+  PERFORM t.check('images : pas d''image pour un autre site', false);
+EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('images : pas d''image pour un autre site', true); END $$;
+DO $$ BEGIN INSERT INTO public.media (site_id, data_url) VALUES ('5e1e0000-0000-4000-8000-000000000001', 'data:image/svg+xml;base64,PHN2Zz4=');
+  PERFORM t.check('images : un SVG (pouvant contenir du script) est refusé', false);
+EXCEPTION WHEN check_violation THEN PERFORM t.check('images : un SVG (pouvant contenir du script) est refusé', true); END $$;
+DO $$ BEGIN PERFORM 1 FROM public.media;
+  PERFORM t.check('images : même l''admin ne peut pas lister les images depuis le navigateur', false);
+EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('images : même l''admin ne peut pas lister les images depuis le navigateur', true); END $$;
+COMMIT;
+BEGIN; SET LOCAL ROLE anon;
+DO $$ BEGIN PERFORM 1 FROM public.media;
+  PERFORM t.check('images : un visiteur ne peut pas lister les images', false);
+EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('images : un visiteur ne peut pas lister les images', true); END $$;
+COMMIT;
+BEGIN; SELECT t.as_user('aaaaaaaa-0000-4000-8000-000000000003', 'occupant@example.fr');
+DO $$ BEGIN INSERT INTO public.media (site_id, data_url) VALUES ('5e1e0000-0000-4000-8000-000000000001', 'data:image/webp;base64,UklGRg==');
+  PERFORM t.check('images : un occupant ne peut pas en ajouter', false);
+EXCEPTION WHEN insufficient_privilege THEN PERFORM t.check('images : un occupant ne peut pas en ajouter', true); END $$;
+COMMIT;
+BEGIN; SET LOCAL ROLE service_role;
+SELECT t.check('images : le serveur (route /media) lit une image par son identifiant',
+  (SELECT data_url FROM public.media WHERE id = '55555555-0000-4000-8000-000000000001') LIKE 'data:image/webp;%');
+COMMIT;
+
+-- ===== 8. Dernier super-admin =====
 DO $$ BEGIN DELETE FROM public.user_roles WHERE role = 'super_admin';
   PERFORM t.check('dernier super-admin : sa suppression est bloquée par la base, même côté serveur', false);
 EXCEPTION WHEN raise_exception THEN PERFORM t.check('dernier super-admin : sa suppression est bloquée par la base, même côté serveur', true); END $$;

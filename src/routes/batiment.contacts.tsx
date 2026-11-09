@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 import { useContacts } from "@/lib/data";
 import { useSite } from "@/lib/site";
-import { ContactButtons, EmptyState, Loading } from "@/components/common";
+import { ContactButtons, EmptyState, ErrorState, Loading } from "@/components/common";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/batiment/contacts")({ component: Contacts });
@@ -23,9 +23,10 @@ function ContactCard({ c }: { c: Contact }) {
 }
 
 function Contacts() {
-  const { data, isLoading } = useContacts();
+  const { data, isLoading, isError, refetch } = useContacts();
   const { data: site } = useSite();
   if (isLoading) return <Loading />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
   // Urgences en priorité, puis l'accueil, puis les autres contacts.
   const all = data ?? [];
   const urgent = all.filter((c) => c.is_emergency);

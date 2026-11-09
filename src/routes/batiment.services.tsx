@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServices } from "@/lib/data";
-import { EmptyState, Loading } from "@/components/common";
+import { EmptyState, ErrorState, Loading } from "@/components/common";
 
 export const Route = createFileRoute("/batiment/services")({ component: Services });
 
 function Services() {
-  const { data, isLoading } = useServices();
+  const { data, isLoading, isError, refetch } = useServices();
   if (isLoading) return <Loading />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data?.length) return <EmptyState>Les services seront bientôt présentés ici.</EmptyState>;
   return (
     <div className="grid gap-3 md:grid-cols-2">

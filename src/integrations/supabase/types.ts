@@ -593,6 +593,38 @@ export type Database = {
           },
         ]
       }
+      media: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_url: string
+          id: string
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_url: string
+          id?: string
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_url?: string
+          id?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           category: string | null

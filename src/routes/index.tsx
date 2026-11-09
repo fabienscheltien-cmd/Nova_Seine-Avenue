@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { useEvents, useNews } from "@/lib/data";
 import { EventCard } from "@/components/EventCard";
 import { NewsCard } from "@/components/NewsCard";
-import { ContactButtons, EmptyState, Loading, SectionTitle } from "@/components/common";
+import { ContactButtons, EmptyState, ErrorState, Loading, SectionTitle } from "@/components/common";
 import { t } from "@/i18n";
 
 export const Route = createFileRoute("/")({
@@ -64,7 +64,7 @@ function Home() {
       <SectionTitle action={<Link to="/evenements" className="text-sm text-brand-light">{t("common.seeAll")}</Link>}>
         {t("home.today")}
       </SectionTitle>
-      {today.isLoading ? <Loading /> : today.data?.length ? (
+      {today.isLoading ? <Loading /> : today.isError ? <ErrorState onRetry={() => today.refetch()} /> : today.data?.length ? (
         <div className="grid gap-3 md:grid-cols-2">{today.data.map((e) => <EventCard key={e.id} event={e} />)}</div>
       ) : (
         <EmptyState>{t("events.none")}. <Link to="/evenements" className="text-brand-light underline">Voir la semaine</Link></EmptyState>
@@ -73,7 +73,7 @@ function Home() {
       <SectionTitle action={<Link to="/actualites" className="text-sm text-brand-light">{t("common.seeAll")}</Link>}>
         {t("home.latestNews")}
       </SectionTitle>
-      {news.isLoading ? <Loading /> : news.data?.length ? (
+      {news.isLoading ? <Loading /> : news.isError ? <ErrorState onRetry={() => news.refetch()} /> : news.data?.length ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{news.data.map((n) => <NewsCard key={n.id} item={n} />)}</div>
       ) : (
         <EmptyState>{t("news.none")}</EmptyState>

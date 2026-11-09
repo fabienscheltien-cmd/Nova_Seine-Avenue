@@ -110,10 +110,11 @@ export async function reorderRows(table: AdminTable, ids: string[]) {
 const MAX_IMAGE_BYTES = 1_500_000;
 
 /**
- * Redimensionne (1600 px max) et compresse une image en data URL WebP, ou JPEG à défaut.
- * Les images sont stockées dans la base : l'espace de travail interdit les buckets publics.
+ * Redimensionne (1600 px max), compresse (WebP, ou JPEG à défaut) et enregistre une image ;
+ * renvoie son adresse /media/<id>. Les images sont stockées dans la base (table media) :
+ * l'espace de travail interdit les buckets publics.
  */
-export async function uploadImage(_siteId: string, file: File): Promise<string> {
+export async function uploadImage(siteId: string, file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Choisissez un fichier image (JPEG, PNG, WebP…).");
   if (file.size > 20 * 1024 * 1024) throw new Error("Image trop lourde (20 Mo maximum).");
   const bitmap = await createImageBitmap(file).catch(() => { throw new Error("Image illisible."); });
@@ -127,11 +128,17 @@ export async function uploadImage(_siteId: string, file: File): Promise<string> 
     return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", quality);
   };
   // Réduit encore si l'image reste trop lourde (photos très détaillées).
+  let dataUrl = "";
   for (const [max, quality] of [[1600, 0.8], [1280, 0.72], [960, 0.65]] as const) {
-    const url = encode(max, quality);
-    if (url.length <= MAX_IMAGE_BYTES) return url;
+    dataUrl = encode(max, quality);
+    if (dataUrl.length <= MAX_IMAGE_BYTES) break;
   }
-  throw new Error("Image trop détaillée : recadrez-la ou choisissez-en une plus légère.");
+  if (dataUrl.length > MAX_IMAGE_BYTES) throw new Error("Image trop détaillée : recadrez-la ou choisissez-en une plus légère.");
+  // Identifiant créé ici : la table n'est pas lisible depuis le navigateur.
+  const id = crypto.randomUUID();
+  const { error } = await supabase.from("media").insert({ id, site_id: siteId, data_url: dataUrl });
+  if (error) throw new Error("Enregistrement de l'image impossible.");
+  return `/media/${id}`;
 }
 
 /** Valeur pour <input type="datetime-local"> à partir d'une date ISO (heure locale). */

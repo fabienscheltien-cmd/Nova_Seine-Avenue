@@ -10,14 +10,23 @@ import { useMyRegistrations } from "@/lib/data";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { EventCard } from "@/components/EventCard";
 import { SecuritySettings } from "@/components/account/Security";
-import { EmptyState, Loading, PageHeader, SectionTitle } from "@/components/common";
+import { ConfirmButton } from "@/components/admin/fields";
+import { EmptyState, ErrorState, Loading, PageHeader, SectionTitle } from "@/components/common";
+
+/** Page où revenir après connexion : chemin interne uniquement (pas de redirection vers un autre site). */
+const safeReturn = (v: unknown) => (typeof v === "string" && /^\/(?!\/)[^\s\\]*$/.test(v) ? v : undefined);
 
 export const Route = createFileRoute("/compte")({
+  validateSearch: (s: Record<string, unknown>): { retour?: string } => {
+    const retour = safeReturn(s["retour"]);
+    return retour ? { retour } : {};
+  },
   head: () => pageMeta("Mon compte", "Votre profil, vos préférences et vos inscriptions à Seine Avenue."),
   component: Account,
 });
 
-function MagicLink() {
+function MagicLink({ retour }: { retour?: string | undefined }) {
+  const navigate = Route.useNavigate();
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [withPassword, setWithPassword] = useState(false);
@@ -30,9 +39,10 @@ function MagicLink() {
       const { error } = await supabase.auth.signInWithPassword({ email, password: String(f.get("password")) });
       setBusy(false);
       if (error) toast.error("E-mail ou mot de passe incorrect.");
+      else if (retour) navigate({ to: retour });
       return;
     }
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/compte` } });
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${retour ?? "/compte"}` } });
     setBusy(false);
     if (error) toast.error(error.message); else setSent(true);
   };
@@ -62,6 +72,7 @@ function MagicLink() {
 }
 
 function Account() {
+  const { retour } = Route.useSearch();
   const { user, ready, profile, signOut, roles } = useAuth();
   const qc = useQueryClient();
   const regs = useMyRegistrations(user?.id);
@@ -69,7 +80,7 @@ function Account() {
   const [saving, setSaving] = useState(false);
 
   if (!ready) return <Loading />;
-  if (!user) return <div><PageHeader title="Mon compte" /><MagicLink /></div>;
+  if (!user) return <div><PageHeader title="Mon compte" /><MagicLink retour={retour} /></div>;
 
   const save = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,7 +98,6 @@ function Account() {
   };
 
   const remove = async () => {
-    if (!confirm("Supprimer définitivement votre compte et vos inscriptions ?")) return;
     try { await del(); await signOut(); toast.success("Compte supprimé"); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Suppression impossible"); }
   };
@@ -116,12 +126,16 @@ function Account() {
         </form>
       )}
       <SectionTitle>Mes inscriptions</SectionTitle>
-      {regs.isLoading ? <Loading /> : upcoming.length ? <div className="grid gap-3 md:grid-cols-2">{upcoming.map((r) => <EventCard key={r.id} event={r.event!} showDate />)}</div>
+      {regs.isLoading ? <Loading /> : regs.isError ? <ErrorState onRetry={() => regs.refetch()} /> : upcoming.length ? <div className="grid gap-3 md:grid-cols-2">{upcoming.map((r) => <EventCard key={r.id} event={r.event!} showDate />)}</div>
         : <EmptyState>Aucune inscription à venir. <Link to="/evenements" className="text-brand-light underline">Voir les événements</Link></EmptyState>}
       <SectionTitle>Sécurité</SectionTitle>
       <SecuritySettings />
       <div className="mt-10 border-t border-border pt-5">
-        <button onClick={remove} className="text-sm font-semibold text-destructive underline">Supprimer mon compte</button>
+        <ConfirmButton label="Supprimer mon compte" title="Supprimer votre compte ?" confirmLabel="Supprimer définitivement"
+          description="Votre profil, vos préférences et vos inscriptions seront effacés. Cette action est irréversible."
+          onConfirm={remove} className="text-sm font-semibold text-destructive underline">
+          Supprimer mon compte
+        </ConfirmButton>
       </div>
     </div>
   );

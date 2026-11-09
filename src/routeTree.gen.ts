@@ -40,6 +40,8 @@ import { Route as BatimentIndexRouteImport } from './routes/batiment.index'
 import { Route as BatimentContactsRouteImport } from './routes/batiment.contacts'
 import { Route as BatimentServicesRouteImport } from './routes/batiment.services'
 import { Route as BatimentVieRouteImport } from './routes/batiment.vie'
+import { Route as EvenementsIdRouteImport } from './routes/evenements_.$id'
+import { Route as MediaIdRouteImport } from './routes/media.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +198,16 @@ const BatimentVieRoute = BatimentVieRouteImport.update({
   path: '/vie',
   getParentRoute: () => BatimentRoute,
 } as any)
+const EvenementsIdRoute = EvenementsIdRouteImport.update({
+  id: '/evenements_/$id',
+  path: '/evenements/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MediaIdRoute = MediaIdRouteImport.update({
+  id: '/media/$id',
+  path: '/media/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -226,6 +238,8 @@ export interface FileRoutesByFullPath {
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
+  '/evenements/$id': typeof EvenementsIdRoute
+  '/media/$id': typeof MediaIdRoute
   '/actualites/': typeof ActualitesIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/batiment/': typeof BatimentIndexRoute
@@ -257,6 +271,8 @@ export interface FileRoutesByTo {
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
+  '/evenements/$id': typeof EvenementsIdRoute
+  '/media/$id': typeof MediaIdRoute
   '/actualites': typeof ActualitesIndexRoute
   '/admin': typeof AdminIndexRoute
   '/batiment': typeof BatimentIndexRoute
@@ -291,6 +307,8 @@ export interface FileRoutesById {
   '/batiment/contacts': typeof BatimentContactsRoute
   '/batiment/services': typeof BatimentServicesRoute
   '/batiment/vie': typeof BatimentVieRoute
+  '/evenements_/$id': typeof EvenementsIdRoute
+  '/media/$id': typeof MediaIdRoute
   '/actualites/': typeof ActualitesIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/batiment/': typeof BatimentIndexRoute
@@ -326,6 +344,8 @@ export interface FileRouteTypes {
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
+    | '/evenements/$id'
+    | '/media/$id'
     | '/actualites/'
     | '/admin/'
     | '/batiment/'
@@ -357,6 +377,8 @@ export interface FileRouteTypes {
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
+    | '/evenements/$id'
+    | '/media/$id'
     | '/actualites'
     | '/admin'
     | '/batiment'
@@ -390,6 +412,8 @@ export interface FileRouteTypes {
     | '/batiment/contacts'
     | '/batiment/services'
     | '/batiment/vie'
+    | '/evenements_/$id'
+    | '/media/$id'
     | '/actualites/'
     | '/admin/'
     | '/batiment/'
@@ -408,6 +432,8 @@ export interface RootRouteChildren {
   ReservationsRoute: typeof ReservationsRoute
   RestoRoute: typeof RestoRoute
   ActualitesIdRoute: typeof ActualitesIdRoute
+  EvenementsIdRoute: typeof EvenementsIdRoute
+  MediaIdRoute: typeof MediaIdRoute
   ActualitesIndexRoute: typeof ActualitesIndexRoute
 }
 
@@ -630,6 +656,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BatimentVieRouteImport
       parentRoute: typeof BatimentRoute
     }
+    '/evenements_/$id': {
+      id: '/evenements_/$id'
+      path: '/evenements/$id'
+      fullPath: '/evenements/$id'
+      preLoaderRoute: typeof EvenementsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/media/$id': {
+      id: '/media/$id'
+      path: '/media/$id'
+      fullPath: '/media/$id'
+      preLoaderRoute: typeof MediaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -700,6 +740,8 @@ const rootRouteChildren: RootRouteChildren = {
   ReservationsRoute: ReservationsRoute,
   RestoRoute: RestoRoute,
   ActualitesIdRoute: ActualitesIdRoute,
+  EvenementsIdRoute: EvenementsIdRoute,
+  MediaIdRoute: MediaIdRoute,
   ActualitesIndexRoute: ActualitesIndexRoute,
 }
 export const routeTree = rootRouteImport

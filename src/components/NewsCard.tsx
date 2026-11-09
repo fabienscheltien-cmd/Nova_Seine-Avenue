@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { NewsRow } from "@/lib/data";
+import type { NewsCardRow } from "@/lib/data";
 
-export function NewsCard({ item }: { item: NewsRow }) {
+export function NewsCard({ item }: { item: NewsCardRow }) {
   return (
     <Link
       to="/actualites/$id"
@@ -13,7 +13,8 @@ export function NewsCard({ item }: { item: NewsRow }) {
       {item.image_url ? (
         <img src={item.image_url} alt="" className="aspect-[16/9] w-full object-cover" loading="lazy" />
       ) : (
-        <div className="aspect-[16/9] w-full bg-gradient-to-br from-surface-high to-card" aria-hidden />
+        // Sur mobile, pas de bloc vide : la carte reste compacte ; sur grand écran, il aligne la grille.
+        <div className="hidden aspect-[16/9] w-full bg-gradient-to-br from-surface-high to-card sm:block" aria-hidden />
       )}
       <div className="flex flex-1 flex-col gap-1 p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
