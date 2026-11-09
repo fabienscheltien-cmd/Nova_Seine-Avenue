@@ -1,114 +1,80 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Bold, Italic, List, ListOrdered, Link2, ImagePlus, Trash2, Upload, Loader2 } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Bold, Italic, List, ListOrdered, Link2, ImagePlus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
-import { compressImage } from "@/lib/admin";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { uploadImage } from "@/lib/admin";
 
-export type FieldDef = {
-  name: string;
-  label: string;
-  type: "text" | "textarea" | "rich" | "email" | "tel" | "url" | "number" | "switch" | "select" | "image" | "date" | "time" | "datetime";
-  help?: string;
-  placeholder?: string;
-  required?: boolean;
-  options?: { value: string; label: string }[];
-  half?: boolean;
-};
-
-const inputCls =
-  "h-11 w-full rounded-xl border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring md:text-sm";
+export const inputCls = "mt-1 h-12 w-full rounded-xl border border-input bg-background px-4 text-base";
+export const btnPrimary = "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-60";
+export const btnSecondary = "inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-semibold disabled:opacity-60";
 
 export function FieldShell({ id, label, help, required, children }: { id: string; label: string; help?: string | undefined; required?: boolean | undefined; children: ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-semibold">
-        {label} {required ? <span className="text-destructive" aria-label="obligatoire">*</span> : <span className="font-normal text-muted-foreground">(facultatif)</span>}
+    <div>
+      <label htmlFor={id} className="text-sm font-semibold">
+        {label}{required && <span className="text-destructive" aria-hidden> *</span>}
       </label>
       {children}
-      {help && <p className="text-xs text-muted-foreground">{help}</p>}
+      {help && <p id={`${id}-help`} className="mt-1 text-xs text-muted-foreground">{help}</p>}
     </div>
   );
 }
 
-export function Field({ def, value, onChange }: { def: FieldDef; value: unknown; onChange: (v: unknown) => void }) {
-  const id = `f-${def.name}`;
-  const common = { id, placeholder: def.placeholder, required: def.required, className: inputCls };
-  let control: ReactNode;
-  switch (def.type) {
-    case "textarea":
-      control = <textarea {...common} className={`${inputCls} h-auto min-h-24 py-2`} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />;
-      break;
-    case "rich":
-      control = <RichText id={id} value={(value as string) ?? ""} onChange={onChange} placeholder={def.placeholder} />;
-      break;
-    case "number":
-      control = <input {...common} type="number" min={0} inputMode="numeric" value={value == null ? "" : String(value)} onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))} />;
-      break;
-    case "switch":
-      return (
-        <div className="flex items-start justify-between gap-4 rounded-xl border border-border p-3">
-          <div>
-            <label htmlFor={id} className="text-sm font-semibold">{def.label}</label>
-            {def.help && <p className="text-xs text-muted-foreground">{def.help}</p>}
-          </div>
-          <Switch id={id} checked={!!value} onCheckedChange={onChange} />
-        </div>
-      );
-    case "select":
-      control = (
-        <select {...common} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value || null)}>
-          {!def.required && <option value="">— Aucun —</option>}
-          {def.options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      );
-      break;
-    case "image":
-      control = <ImageField id={id} value={(value as string) ?? ""} onChange={onChange} />;
-      break;
-    case "datetime":
-      control = <input {...common} type="datetime-local" value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />;
-      break;
-    default:
-      control = <input {...common} type={def.type} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />;
-  }
-  return <FieldShell id={id} label={def.label} help={def.help} required={def.required}>{control}</FieldShell>;
+export function ConfirmButton({ label, title, description, confirmLabel = "Supprimer", onConfirm, className, children, destructive = true }: {
+  label: string; title: string; description: string; confirmLabel?: string; onConfirm: () => void; className?: string; children?: ReactNode; destructive?: boolean;
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button type="button" className={className ?? "inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-destructive"} aria-label={label} title={label}>
+          {children ?? <Trash2 className="h-4 w-4" aria-hidden />}
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className={destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : undefined}>{confirmLabel}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
 
-export function ImageField({ id, value, onChange, maxSize = 1600 }: { id: string; value: string; onChange: (v: string | null) => void; maxSize?: number }) {
-  const ref = useRef<HTMLInputElement>(null);
+export function ImageField({ id, siteId, value, onChange }: { id: string; siteId: string; value: string; onChange: (v: string) => void }) {
   const [busy, setBusy] = useState(false);
-  const pick = async (f?: File) => {
-    if (!f) return;
-    if (!f.type.startsWith("image/")) { toast.error("Ce fichier n'est pas une image."); return; }
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
     setBusy(true);
-    try {
-      onChange(await compressImage(f, maxSize));
-      toast.success("Image ajoutée (redimensionnée automatiquement).");
-    } catch {
-      toast.error("Impossible de lire cette image.");
-    } finally {
-      setBusy(false);
-    }
+    try { onChange(await uploadImage(siteId, file)); toast.success("Image ajoutée"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Téléversement impossible"); }
+    finally { setBusy(false); }
   };
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {value ? <img src={value} alt="Aperçu" className="h-20 w-32 rounded-lg border border-border object-cover" /> : null}
-      <input ref={ref} id={id} type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
-      <button type="button" onClick={() => ref.current?.click()} className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} {value ? "Changer l'image" : "Choisir une image"}
-      </button>
-      {value && (
-        <button type="button" onClick={() => onChange(null)} className="inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm text-destructive">
-          <Trash2 className="h-4 w-4" /> Retirer
-        </button>
-      )}
+    <div className="mt-1 space-y-2">
+      {value && <img src={value} alt="Aperçu de l'image" className="max-h-44 rounded-xl border border-border object-cover" />}
+      <div className="flex flex-wrap gap-2">
+        <label className={`${btnSecondary} cursor-pointer`}>
+          <Upload className="h-4 w-4" aria-hidden /> {busy ? "Envoi…" : value ? "Changer l'image" : "Choisir une image"}
+          <input id={id} type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => pick(e.target.files?.[0])} />
+        </label>
+        {value && <button type="button" className={btnSecondary} onClick={() => onChange("")}>Retirer</button>}
+      </div>
     </div>
   );
 }
 
-function RichText({ id, value, onChange, placeholder }: { id: string; value: string; onChange: (v: string) => void; placeholder?: string | undefined }) {
+/** Éditeur simple : gras, italique, listes, liens, images. Produit du HTML (nettoyé à l'affichage). */
+export function RichTextEditor({ id, siteId, value, onChange }: { id: string; siteId: string; value: string; onChange: (v: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const labelId = useId();
   useEffect(() => {
     if (ref.current && ref.current.innerHTML !== value) ref.current.innerHTML = value;
   }, [value]);
@@ -117,39 +83,46 @@ function RichText({ id, value, onChange, placeholder }: { id: string; value: str
     document.execCommand(cmd, false, arg);
     onChange(ref.current?.innerHTML ?? "");
   };
-  const btn = (label: string, icon: ReactNode, fn: () => void) => (
-    <button type="button" aria-label={label} title={label} onMouseDown={(e) => e.preventDefault()} onClick={fn} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-high">
-      {icon}
-    </button>
-  );
+  const addLink = () => {
+    const url = prompt("Adresse du lien (https://…)");
+    if (url && /^(https?:|mailto:|tel:)/i.test(url.trim())) exec("createLink", url.trim());
+    else if (url) toast.error("Le lien doit commencer par https://, mailto: ou tel:");
+  };
+  const addImage = async (file: File | undefined) => {
+    if (!file) return;
+    try { exec("insertImage", await uploadImage(siteId, file)); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Téléversement impossible"); }
+  };
+  const tools = [
+    { label: "Gras", icon: Bold, run: () => exec("bold") },
+    { label: "Italique", icon: Italic, run: () => exec("italic") },
+    { label: "Liste à puces", icon: List, run: () => exec("insertUnorderedList") },
+    { label: "Liste numérotée", icon: ListOrdered, run: () => exec("insertOrderedList") },
+    { label: "Ajouter un lien", icon: Link2, run: addLink },
+    { label: "Insérer une image", icon: ImagePlus, run: () => fileRef.current?.click() },
+  ];
   return (
-    <div className="rounded-xl border border-input bg-background">
-      <div className="flex flex-wrap gap-1 border-b border-border p-1">
-        {btn("Gras", <Bold className="h-4 w-4" />, () => exec("bold"))}
-        {btn("Italique", <Italic className="h-4 w-4" />, () => exec("italic"))}
-        {btn("Liste à puces", <List className="h-4 w-4" />, () => exec("insertUnorderedList"))}
-        {btn("Liste numérotée", <ListOrdered className="h-4 w-4" />, () => exec("insertOrderedList"))}
-        {btn("Ajouter un lien", <Link2 className="h-4 w-4" />, () => {
-          const url = window.prompt("Adresse du lien (ex. https://www.exemple.fr)");
-          if (url) exec("createLink", url);
-        })}
-        {btn("Ajouter une image", <ImagePlus className="h-4 w-4" />, () => imgRef.current?.click())}
-        <input ref={imgRef} type="file" accept="image/*" className="sr-only" onChange={async (e) => {
-          const f = e.target.files?.[0];
-          if (f) exec("insertImage", await compressImage(f, 1200));
-          e.target.value = "";
-        }} />
+    <div className="mt-1 overflow-hidden rounded-xl border border-input bg-background">
+      <div role="toolbar" aria-label="Mise en forme" className="flex flex-wrap gap-1 border-b border-border bg-card p-1.5">
+        {tools.map(({ label, icon: Icon, run }) => (
+          <button key={label} type="button" onClick={run} title={label} aria-label={label}
+            className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-surface-high">
+            <Icon className="h-4 w-4" aria-hidden />
+          </button>
+        ))}
+        <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={(e) => { addImage(e.target.files?.[0]); e.target.value = ""; }} />
       </div>
+      <span id={labelId} className="sr-only">Contenu</span>
       <div
-        ref={ref}
         id={id}
+        ref={ref}
         role="textbox"
-        aria-multiline
+        aria-multiline="true"
+        aria-labelledby={labelId}
         contentEditable
         suppressContentEditableWarning
-        data-placeholder={placeholder}
-        onInput={() => onChange(ref.current?.innerHTML ?? "")}
-        className="prose-admin min-h-40 px-3 py-2 text-sm focus:outline-none empty:before:text-muted-foreground/70 empty:before:content-[attr(data-placeholder)] [&_a]:text-brand-light [&_a]:underline [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        className="prose-nova min-h-48 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
     </div>
   );

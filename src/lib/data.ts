@@ -9,6 +9,9 @@ export type EventRow = Tables["events"]["Row"] & {
   location: { name: string } | null;
 };
 export type NewsRow = Tables["news"]["Row"];
+/** Colonnes d'une carte d'actualité : le contenu complet n'est chargé que sur la page de détail. */
+const NEWS_CARD_COLUMNS = "id, site_id, title, summary, category, image_url, status, published_at";
+export type NewsCardRow = Pick<NewsRow, "id" | "site_id" | "title" | "summary" | "category" | "image_url" | "status" | "published_at">;
 
 function useSiteId() {
   const { data: site } = useSite();
@@ -37,17 +40,32 @@ export function useEvents(opts: { from?: Date; to?: Date } = {}) {
   });
 }
 
+export function useEvent(id: string) {
+  return useQuery({
+    queryKey: ["events", "one", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*, category:event_categories(name), location:event_locations(name)")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as unknown as EventRow | null;
+    },
+  });
+}
+
 export function useNews(limit?: number) {
   const siteId = useSiteId();
   return useQuery({
     queryKey: ["news", siteId, limit],
     enabled: !!siteId,
     queryFn: async () => {
-      let q = supabase.from("news").select("*").eq("site_id", siteId!).order("published_at", { ascending: false });
+      let q = supabase.from("news").select(NEWS_CARD_COLUMNS).eq("site_id", siteId!).order("published_at", { ascending: false });
       if (limit) q = q.limit(limit);
       const { data, error } = await q;
       if (error) throw error;
-      return data;
+      return data as NewsCardRow[];
     },
   });
 }

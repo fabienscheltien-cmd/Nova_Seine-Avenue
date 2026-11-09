@@ -5,7 +5,7 @@ import { fr } from "date-fns/locale";
 import { pageMeta } from "@/lib/meta";
 import { useCategories, useEvents, useLocations, type EventRow } from "@/lib/data";
 import { EventCard } from "@/components/EventCard";
-import { EmptyState, Loading, PageHeader } from "@/components/common";
+import { EmptyState, ErrorState, Loading, PageHeader } from "@/components/common";
 import { t } from "@/i18n";
 
 export const Route = createFileRoute("/evenements")({
@@ -28,11 +28,14 @@ function EventsPage() {
     const from = startOfDay(new Date());
     return { from, to: view === "week" ? addDays(from, 7) : addDays(from, 90) };
   }, [view]);
-  const { data, isLoading } = useEvents(range);
+  const { data, isLoading, isError, refetch } = useEvents(range);
   const { data: cats } = useCategories();
   const { data: locs } = useLocations();
 
-  const filtered = (data ?? []).filter((e) => (!cat || e.category_id === cat) && (!loc || e.location_id === loc));
+  // « Autre » regroupe aussi les événements sans catégorie.
+  const otherId = cats?.find((c) => c.name.toLowerCase() === "autre")?.id;
+  const matchCat = (e: EventRow) => !cat || e.category_id === cat || (cat === otherId && !e.category_id);
+  const filtered = (data ?? []).filter((e) => matchCat(e) && (!loc || e.location_id === loc));
   const days = Array.from({ length: 7 }, (_, i) => addDays(range.from, i));
 
   const select = "h-11 rounded-full border border-input bg-card px-4 text-sm";
@@ -60,7 +63,7 @@ function EventsPage() {
         </select>
       </div>
 
-      {isLoading ? <Loading /> : view === "week" ? (
+      {isLoading ? <Loading /> : isError ? <ErrorState onRetry={() => refetch()} /> : view === "week" ? (
         <div className="space-y-6">
           {days.map((d, i) => {
             const list = filtered.filter((e) => isSameDay(new Date(e.starts_at), d));

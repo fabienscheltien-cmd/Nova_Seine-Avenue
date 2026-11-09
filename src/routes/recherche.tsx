@@ -33,7 +33,7 @@ function SearchPage() {
       {n && !E.length && !N.length && !F.length && !S.length && <div className="mt-6"><EmptyState>Aucun résultat pour « {q} ».</EmptyState></div>}
       {E.length > 0 && <><SectionTitle>Événements</SectionTitle><div className="grid gap-3 md:grid-cols-2">{E.map((e) => <EventCard key={e.id} event={e} showDate />)}</div></>}
       {N.length > 0 && <><SectionTitle>Actualités</SectionTitle><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{N.map((x) => <NewsCard key={x.id} item={x} />)}</div></>}
-      {F.length > 0 && <><SectionTitle>FAQ</SectionTitle><ul className="space-y-2">{F.map((x) => <li key={x.id}><Link to="/batiment" className="block rounded-xl border border-border bg-card p-3">{x.question}</Link></li>)}</ul></>}
+      {F.length > 0 && <><SectionTitle>FAQ</SectionTitle><ul className="space-y-2">{F.map((x) => <li key={x.id}><Link to="/batiment" search={{ q: x.question }} className="block rounded-xl border border-border bg-card p-3">{x.question}</Link></li>)}</ul></>}
       {S.length > 0 && <><SectionTitle>Services</SectionTitle><ul className="space-y-2">{S.map((x) => <li key={x.id}><Link to="/batiment/services" className="block rounded-xl border border-border bg-card p-3">{x.name}</Link></li>)}</ul></>}
     </div>
   );

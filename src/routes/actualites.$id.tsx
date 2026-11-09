@@ -5,7 +5,7 @@ import { fr } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
 import { pageMeta } from "@/lib/meta";
 import { useNewsItem } from "@/lib/data";
-import { EmptyState, Loading } from "@/components/common";
+import { EmptyState, ErrorState, Loading } from "@/components/common";
 import { t } from "@/i18n";
 
 export const Route = createFileRoute("/actualites/$id")({
@@ -23,11 +23,11 @@ export function SafeHtml({ html }: { html: string }) {
 
 function NewsDetail() {
   const { id } = Route.useParams();
-  const { data, isLoading } = useNewsItem(id);
+  const { data, isLoading, isError, refetch } = useNewsItem(id);
   return (
     <article className="mx-auto max-w-3xl">
       <Link to="/actualites" className="mb-4 inline-flex items-center gap-1 text-sm text-brand-light"><ArrowLeft className="h-4 w-4" aria-hidden />{t("news.back")}</Link>
-      {isLoading ? <Loading /> : !data ? <EmptyState>Cette actualité n'est pas disponible.</EmptyState> : (
+      {isLoading ? <Loading /> : isError ? <ErrorState onRetry={() => refetch()} /> : !data ? <EmptyState>Cette actualité n'est pas disponible.</EmptyState> : (
         <>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             {data.category && <span className="font-semibold uppercase tracking-wider text-brand-light">{data.category}</span>}

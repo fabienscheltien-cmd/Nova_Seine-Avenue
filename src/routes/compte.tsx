@@ -9,21 +9,40 @@ import { useAuth } from "@/lib/auth";
 import { useMyRegistrations } from "@/lib/data";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { EventCard } from "@/components/EventCard";
-import { EmptyState, Loading, PageHeader, SectionTitle } from "@/components/common";
+import { SecuritySettings } from "@/components/account/Security";
+import { ConfirmButton } from "@/components/admin/fields";
+import { EmptyState, ErrorState, Loading, PageHeader, SectionTitle } from "@/components/common";
+
+/** Page où revenir après connexion : chemin interne uniquement (pas de redirection vers un autre site). */
+const safeReturn = (v: unknown) => (typeof v === "string" && /^\/(?!\/)[^\s\\]*$/.test(v) ? v : undefined);
 
 export const Route = createFileRoute("/compte")({
+  validateSearch: (s: Record<string, unknown>): { retour?: string } => {
+    const retour = safeReturn(s["retour"]);
+    return retour ? { retour } : {};
+  },
   head: () => pageMeta("Mon compte", "Votre profil, vos préférences et vos inscriptions à Seine Avenue."),
   component: Account,
 });
 
-function MagicLink() {
+function MagicLink({ retour }: { retour?: string | undefined }) {
+  const navigate = Route.useNavigate();
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [withPassword, setWithPassword] = useState(false);
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const email = String(new FormData(e.currentTarget).get("email")).trim();
+    const f = new FormData(e.currentTarget);
+    const email = String(f.get("email")).trim();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/compte` } });
+    if (withPassword) {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: String(f.get("password")) });
+      setBusy(false);
+      if (error) toast.error("E-mail ou mot de passe incorrect.");
+      else if (retour) navigate({ to: retour });
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${retour ?? "/compte"}` } });
     setBusy(false);
     if (error) toast.error(error.message); else setSent(true);
   };
@@ -31,23 +50,37 @@ function MagicLink() {
   return (
     <form onSubmit={submit} className="mx-auto max-w-md space-y-3 rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Se connecter</h2>
-      <p className="text-sm text-muted-foreground">Recevez un lien de connexion par e-mail, sans mot de passe.</p>
+      <p className="text-sm text-muted-foreground">
+        {withPassword ? "Avec le mot de passe que vous avez défini dans votre compte." : "Recevez un lien de connexion par e-mail, sans mot de passe."}
+      </p>
       <label htmlFor="ml-email" className="text-sm font-semibold">Adresse e-mail</label>
-      <input id="ml-email" name="email" type="email" required className="h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="prenom.nom@entreprise.fr" />
-      <button disabled={busy} className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground disabled:opacity-60">Recevoir mon lien</button>
+      <input id="ml-email" name="email" type="email" required autoComplete="email" className="h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="prenom.nom@entreprise.fr" />
+      {withPassword && (
+        <>
+          <label htmlFor="ml-password" className="text-sm font-semibold">Mot de passe</label>
+          <input id="ml-password" name="password" type="password" required autoComplete="current-password" className="h-12 w-full rounded-xl border border-input bg-background px-4" />
+        </>
+      )}
+      <button disabled={busy} className="h-12 w-full rounded-full bg-primary font-semibold text-primary-foreground disabled:opacity-60">
+        {withPassword ? "Se connecter" : "Recevoir mon lien"}
+      </button>
+      <button type="button" onClick={() => setWithPassword((x) => !x)} className="w-full text-sm text-brand-light underline">
+        {withPassword ? "Recevoir plutôt un lien par e-mail" : "J'ai défini un mot de passe"}
+      </button>
     </form>
   );
 }
 
 function Account() {
-  const { user, ready, profile, signOut } = useAuth();
+  const { retour } = Route.useSearch();
+  const { user, ready, profile, signOut, roles } = useAuth();
   const qc = useQueryClient();
   const regs = useMyRegistrations(user?.id);
   const del = useServerFn(deleteMyAccount);
   const [saving, setSaving] = useState(false);
 
   if (!ready) return <Loading />;
-  if (!user) return <div><PageHeader title="Mon compte" /><MagicLink /></div>;
+  if (!user) return <div><PageHeader title="Mon compte" /><MagicLink retour={retour} /></div>;
 
   const save = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +98,6 @@ function Account() {
   };
 
   const remove = async () => {
-    if (!confirm("Supprimer définitivement votre compte et vos inscriptions ?")) return;
     try { await del(); await signOut(); toast.success("Compte supprimé"); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Suppression impossible"); }
   };
@@ -75,7 +107,12 @@ function Account() {
   return (
     <div>
       <PageHeader title="Mon compte" subtitle={user.email ?? ""}>
-        <button onClick={signOut} className="h-11 rounded-full border border-border px-5 text-sm font-semibold">Se déconnecter</button>
+        <div className="flex flex-wrap gap-2">
+          {roles.some((r) => r.role !== "occupant") && (
+            <Link to="/admin" className="inline-flex h-11 items-center rounded-full border border-primary/50 px-5 text-sm font-semibold text-brand-light">Espace de gestion</Link>
+          )}
+          <button onClick={signOut} className="h-11 rounded-full border border-border px-5 text-sm font-semibold">Se déconnecter</button>
+        </div>
       </PageHeader>
       {profile && (
         <form key={user.id + String(!!profile)} onSubmit={save} className="grid gap-4 rounded-2xl border border-border bg-card p-5 md:grid-cols-2">
@@ -89,10 +126,16 @@ function Account() {
         </form>
       )}
       <SectionTitle>Mes inscriptions</SectionTitle>
-      {regs.isLoading ? <Loading /> : upcoming.length ? <div className="grid gap-3 md:grid-cols-2">{upcoming.map((r) => <EventCard key={r.id} event={r.event!} showDate />)}</div>
+      {regs.isLoading ? <Loading /> : regs.isError ? <ErrorState onRetry={() => regs.refetch()} /> : upcoming.length ? <div className="grid gap-3 md:grid-cols-2">{upcoming.map((r) => <EventCard key={r.id} event={r.event!} showDate />)}</div>
         : <EmptyState>Aucune inscription à venir. <Link to="/evenements" className="text-brand-light underline">Voir les événements</Link></EmptyState>}
+      <SectionTitle>Sécurité</SectionTitle>
+      <SecuritySettings />
       <div className="mt-10 border-t border-border pt-5">
-        <button onClick={remove} className="text-sm font-semibold text-destructive underline">Supprimer mon compte</button>
+        <ConfirmButton label="Supprimer mon compte" title="Supprimer votre compte ?" confirmLabel="Supprimer définitivement"
+          description="Votre profil, vos préférences et vos inscriptions seront effacés. Cette action est irréversible."
+          onConfirm={remove} className="text-sm font-semibold text-destructive underline">
+          Supprimer mon compte
+        </ConfirmButton>
       </div>
     </div>
   );

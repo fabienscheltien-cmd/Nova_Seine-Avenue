@@ -3,7 +3,7 @@ import { useState } from "react";
 import { pageMeta } from "@/lib/meta";
 import { useNews } from "@/lib/data";
 import { NewsCard } from "@/components/NewsCard";
-import { EmptyState, Loading, PageHeader } from "@/components/common";
+import { EmptyState, ErrorState, Loading, PageHeader } from "@/components/common";
 import { t } from "@/i18n";
 
 export const Route = createFileRoute("/actualites/")({
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/actualites/")({
 });
 
 function NewsPage() {
-  const { data, isLoading } = useNews();
+  const { data, isLoading, isError, refetch } = useNews();
   const [cat, setCat] = useState("");
   const cats = Array.from(new Set((data ?? []).map((n) => n.category).filter(Boolean))) as string[];
   const list = (data ?? []).filter((n) => !cat || n.category === cat);
@@ -29,7 +29,7 @@ function NewsPage() {
           ))}
         </div>
       )}
-      {isLoading ? <Loading /> : list.length ? (
+      {isLoading ? <Loading /> : isError ? <ErrorState onRetry={() => refetch()} /> : list.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{list.map((n) => <NewsCard key={n.id} item={n} />)}</div>
       ) : <EmptyState>{t("news.none")}</EmptyState>}
     </div>

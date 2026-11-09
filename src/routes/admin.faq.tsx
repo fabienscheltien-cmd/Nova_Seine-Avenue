@@ -1,106 +1,57 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { pageMeta } from "@/lib/meta";
-import { CrudPage, ConfirmDialog, IconBtn, SortableRows } from "@/components/admin/CrudPage";
-import { Switch } from "@/components/ui/switch";
-import { db, useAdminSite, useAdminTable, useInvalidateAdmin } from "@/lib/admin";
-import { SafeHtml } from "./actualites.$id";
+import { newItemSearch, useAdminRows, useAdminSiteId } from "@/lib/admin";
+import { CrudModule } from "@/components/admin/CrudModule";
+import { PageHeader } from "@/components/common";
 
-export const Route = createFileRoute("/admin/faq")({
-  head: () => pageMeta("Gestion — FAQ", "Gérez les questions fréquentes par thème."),
-  component: FaqAdmin,
-});
+export const Route = createFileRoute("/admin/faq")({ validateSearch: newItemSearch, component: AdminFaq });
 
-type Theme = { id: string; name: string; visible: boolean; position: number };
+function AdminFaq() {
+  const siteId = useAdminSiteId();
+  const { nouveau } = Route.useSearch();
+  const themes = useAdminRows("faq_themes", siteId);
+  const [tab, setTab] = useState<"questions" | "themes">("questions");
+  const options = (themes.data ?? []).map((t) => ({ value: t.id, label: t.name }));
 
-function FaqAdmin() {
-  const themes = useAdminTable<Theme>("faq_themes");
-  const list = themes.data ?? [];
   return (
-    <CrudPage
-      table="faq_items"
-      title="FAQ"
-      intro="Questions et réponses regroupées par thème. Glissez pour changer l'ordre, utilisez l'interrupteur pour masquer sans supprimer."
-      singular="cette question"
-      addLabel="Ajouter une question FAQ"
-      sortable
-      visibleToggle
-      groupKey="theme_id"
-      groups={list.map((t) => ({ id: t.id, label: t.name }))}
-      beforeList={<ThemesManager themes={list} />}
-      searchKeys={["question", "answer"]}
-      emptyText="Aucune question pour l'instant. Ajoutez la première."
-      primary={(r) => String(r["question"])}
-      defaults={{ question: "", answer: "", theme_id: list[0]?.id ?? "", visible: true }}
-      preview={(v) => (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="font-semibold">{String(v["question"] || "Votre question")}</p>
-          <div className="mt-2 text-sm text-muted-foreground"><SafeHtml html={String(v["answer"] ?? "")} /></div>
-        </div>
-      )}
-      fields={[
-        { name: "theme_id", label: "Thème", type: "select", required: true, options: list.map((t) => ({ value: t.id, label: t.name })) },
-        { name: "question", label: "Question", type: "text", required: true, placeholder: "Ex. Que faire si j'ai oublié mon badge ?" },
-        { name: "answer", label: "Réponse", type: "rich", required: true, placeholder: "Ex. Présentez-vous à l'accueil avec une pièce d'identité…" },
-        { name: "visible", label: "Visible par les occupants", type: "switch" },
-      ]}
-    />
-  );
-}
-
-function ThemesManager({ themes }: { themes: Theme[] }) {
-  const { site } = useAdminSite();
-  const invalidate = useInvalidateAdmin();
-  const [open, setOpen] = useState(false);
-  const [del, setDel] = useState<Theme | null>(null);
-  const refresh = () => invalidate("faq_themes");
-  const add = async () => {
-    const name = window.prompt("Nom du nouveau thème (ex. Accès et badges)");
-    if (!name?.trim()) return;
-    await db.from("faq_themes").insert({ site_id: site!.id, name: name.trim(), position: themes.length });
-    refresh();
-  };
-  const rename = async (t: Theme) => {
-    const name = window.prompt("Nouveau nom du thème", t.name);
-    if (!name?.trim()) return;
-    await db.from("faq_themes").update({ name: name.trim() }).eq("id", t.id);
-    refresh();
-  };
-  const move = async (f: number, to: number) => {
-    if (to < 0 || to >= themes.length) return;
-    const next = [...themes];
-    const [m] = next.splice(f, 1);
-    next.splice(to, 0, m!);
-    await Promise.all(next.map((t, i) => db.from("faq_themes").update({ position: i }).eq("id", t.id)));
-    refresh();
-  };
-  const remove = async (t: Theme) => {
-    const { error } = await db.from("faq_themes").delete().eq("id", t.id);
-    if (error) toast.error("Ce thème contient encore des questions : déplacez-les ou supprimez-les d'abord.");
-    refresh();
-  };
-  return (
-    <div className="mb-5 rounded-2xl border border-border bg-card p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm"><span className="font-semibold">{themes.length} thèmes</span> <span className="text-muted-foreground">— les rubriques de la FAQ</span></p>
-        <button type="button" className="text-sm font-semibold text-brand-light" onClick={() => setOpen(!open)}>{open ? "Fermer" : "Gérer les thèmes"}</button>
+    <div>
+      <PageHeader title="FAQ" subtitle="Les questions fréquentes, regroupées par thème. Masquez une question pour la retirer sans la supprimer." />
+      <div role="tablist" aria-label="Rubrique" className="mb-5 inline-flex rounded-full border border-border bg-card p-1">
+        {(["questions", "themes"] as const).map((v) => (
+          <button key={v} role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
+            className={`h-9 rounded-full px-4 text-sm font-semibold ${tab === v ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+            {v === "questions" ? "Questions" : "Thèmes"}
+          </button>
+        ))}
       </div>
-      {open && (
-        <div className="mt-3 space-y-3">
-          <SortableRows rows={themes} sortable onMove={move} render={(t) => (
-            <>
-              <span className="flex-1 font-medium">{t.name}</span>
-              <Switch checked={t.visible} aria-label="Afficher ce thème" onCheckedChange={async () => { await db.from("faq_themes").update({ visible: !t.visible }).eq("id", t.id); refresh(); }} />
-              <IconBtn label="Renommer" onClick={() => rename(t)}><Pencil className="h-4 w-4" /></IconBtn>
-              <IconBtn label="Supprimer" danger onClick={() => setDel(t)}><Trash2 className="h-4 w-4" /></IconBtn>
-            </>
-          )} />
-          <button type="button" onClick={add} className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold"><Plus className="h-4 w-4" /> Ajouter un thème</button>
-        </div>
+      {tab === "questions" ? (
+        <CrudModule
+          table="faq_items" siteId={siteId} noun="cette question" addLabel="Ajouter une question"
+          emptyText="Aucune question pour l'instant. Ajoutez la première."
+          autoOpenNew={!!nouveau && options.length > 0}
+          orderable hideable
+          groupBy={{ field: "theme_id", groups: options }}
+          rowTitle={(r) => r["question"]}
+          rowMeta={(r) => <span className="line-clamp-1">{r["answer"]}</span>}
+          fields={[
+            { name: "theme_id", label: "Thème", type: "select", required: true, options, defaultValue: options[0]?.value ?? "" },
+            { name: "question", label: "Question", type: "text", required: true, placeholder: "Ex. : Comment obtenir un badge visiteur ?" },
+            { name: "answer", label: "Réponse", type: "textarea", required: true, placeholder: "Ex. : Présentez-vous à l'accueil avec une pièce d'identité…", help: "Écrivez simplement, comme si vous répondiez de vive voix." },
+            { name: "visible", label: "Visible par les occupants", type: "checkbox", defaultValue: true },
+          ]}
+        />
+      ) : (
+        <CrudModule
+          table="faq_themes" siteId={siteId} noun="ce thème" addLabel="Ajouter un thème"
+          emptyText="Aucun thème. Ajoutez-en un pour ranger vos questions."
+          orderable hideable
+          rowTitle={(r) => r["name"]}
+          fields={[
+            { name: "name", label: "Nom du thème", type: "text", required: true, placeholder: "Ex. : Accès et badges" },
+            { name: "visible", label: "Visible par les occupants", type: "checkbox", defaultValue: true },
+          ]}
+        />
       )}
-      <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title="Supprimer ce thème ?" description="Possible uniquement s'il ne contient plus de questions." onConfirm={() => del && remove(del)} />
     </div>
   );
 }

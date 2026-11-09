@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -15,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { MfaPrompt } from "@/components/account/MfaPrompt";
 
 function NotFoundComponent() {
   return (
@@ -70,6 +72,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#071424" },
+      { name: "apple-mobile-web-app-title", content: "NOVA" },
       { title: "Seine Avenue — NOVA Serenity" },
       { name: "description", content: "L'application des occupants de Seine Avenue : événements, réservations, services et contacts." },
       { property: "og:type", content: "website" },
@@ -77,7 +80,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -102,13 +107,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Le back-office a sa propre mise en page (src/routes/admin.tsx).
+  const isAdmin = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin") });
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        {isAdmin ? <Outlet /> : (
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        )}
+        <MfaPrompt />
         <Toaster position="top-center" />
       </AuthProvider>
     </QueryClientProvider>

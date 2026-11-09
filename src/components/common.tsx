@@ -22,6 +22,21 @@ export function EmptyState({ children }: { children: ReactNode }) {
   );
 }
 
+/** Échec de chargement : message clair et nouvel essai (au lieu d'un faux « aucun résultat »). */
+export function ErrorState({ onRetry }: { onRetry?: () => void }) {
+  return (
+    <div role="alert" className="rounded-2xl border border-destructive/40 bg-destructive/10 px-5 py-6 text-center">
+      <p className="font-semibold">Le chargement a échoué.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Vérifiez votre connexion internet, puis réessayez.</p>
+      {onRetry && (
+        <button type="button" onClick={onRetry} className="mt-3 inline-flex h-11 items-center rounded-full border border-border bg-card px-5 text-sm font-semibold">
+          Réessayer
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function Loading() {
   return <p className="py-6 text-center text-muted-foreground" role="status">{t("common.loading")}</p>;
 }

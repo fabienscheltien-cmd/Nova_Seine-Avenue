@@ -1,113 +1,145 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { CalendarDays, LayoutDashboard, Newspaper, HelpCircle, PhoneCall, Sparkles, BookOpen, Inbox, Settings, History, ArrowLeft, Menu, X } from "lucide-react";
-import { useState } from "react";
-import { pageMeta } from "@/lib/meta";
+import {
+  LayoutDashboard, CalendarDays, Newspaper, HelpCircle, Phone, Sparkles, BookOpen, Inbox, Settings, Users,
+  History, ExternalLink, Undo2, UserCog, Building,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { AdminSiteProvider, useAdminSite } from "@/lib/admin";
+import { AdminSiteProvider, useAdminSite } from "@/lib/admin-site";
 import { theme } from "@/theme";
+import { EmptyState, Loading } from "@/components/common";
 
 export const Route = createFileRoute("/admin")({
-  head: () => pageMeta("Gestion", "Back-office NOVA Serenity : gérez événements, actualités, FAQ, contacts et services de votre site."),
-  component: AdminRoot,
+  head: () => ({ meta: [{ title: "Gestion — NOVA Serenity" }, { name: "robots", content: "noindex" }] }),
+  component: AdminLayout,
 });
 
-const nav = [
+type AdminPath = "/admin" | "/admin/evenements" | "/admin/actualites" | "/admin/faq" | "/admin/contacts" | "/admin/services" | "/admin/vie" | "/admin/messages" | "/admin/configuration" | "/admin/acces" | "/admin/historique" | "/admin/journal" | "/admin/utilisateurs" | "/admin/sites";
+type NavItem = { to: AdminPath; label: string; icon: typeof Inbox; exact?: boolean; superOnly?: boolean };
+const nav: NavItem[] = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
   { to: "/admin/evenements", label: "Événements", icon: CalendarDays },
   { to: "/admin/actualites", label: "Actualités", icon: Newspaper },
   { to: "/admin/faq", label: "FAQ", icon: HelpCircle },
-  { to: "/admin/contacts", label: "Contacts", icon: PhoneCall },
+  { to: "/admin/contacts", label: "Contacts", icon: Phone },
   { to: "/admin/services", label: "Services", icon: Sparkles },
   { to: "/admin/vie", label: "Vie dans les bureaux", icon: BookOpen },
-  { to: "/admin/messages", label: "Messages reçus", icon: Inbox },
+  { to: "/admin/messages", label: "Messages", icon: Inbox },
   { to: "/admin/configuration", label: "Configuration", icon: Settings },
-  { to: "/admin/historique", label: "Historique", icon: History },
-] as const;
+  { to: "/admin/acces", label: "Accès", icon: Users },
+  { to: "/admin/historique", label: "Historique", icon: Undo2 },
+  { to: "/admin/journal", label: "Journal", icon: History },
+  { to: "/admin/utilisateurs", label: "Utilisateurs", icon: UserCog, superOnly: true },
+  { to: "/admin/sites", label: "Sites", icon: Building, superOnly: true },
+];
 
-function AdminRoot() {
-  const { user, ready, roles, isSuperAdmin } = useAuth();
-  const isAnyAdmin = isSuperAdmin || roles.some((r) => r.role === "site_admin");
-  if (!ready || (user && roles.length === 0)) return <Centered>Chargement…</Centered>;
-  if (!user)
+function useNewMessages(siteId: string | undefined) {
+  return useQuery({
+    queryKey: ["admin", "new-messages", siteId],
+    enabled: !!siteId,
+    queryFn: async () => {
+      const { count } = await supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("site_id", siteId!).eq("status", "new");
+      return count ?? 0;
+    },
+  });
+}
+
+function AdminLayout() {
+  const { user, ready, rolesReady } = useAuth();
+  if (!ready || !rolesReady) return <div className="p-6"><Loading /></div>;
+  if (!user) {
     return (
-      <Centered>
-        <h1 className="text-xl font-bold">Espace de gestion</h1>
-        <p className="mt-2 text-muted-foreground">Connectez-vous avec votre adresse e-mail professionnelle pour continuer.</p>
-        <Link to="/compte" className="mt-5 inline-flex h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground">Se connecter</Link>
-      </Centered>
+      <div className="mx-auto max-w-md p-6">
+        <EmptyState>
+          <p className="font-semibold text-foreground">Espace de gestion</p>
+          <p className="mt-1">Connectez-vous avec votre adresse e-mail pour accéder à la gestion du site.</p>
+          <Link to="/compte" className="mt-4 inline-flex h-11 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">Se connecter</Link>
+        </EmptyState>
+      </div>
     );
-  if (!isAnyAdmin)
-    return (
-      <Centered>
-        <h1 className="text-xl font-bold">Accès réservé</h1>
-        <p className="mt-2 text-muted-foreground">Votre compte n'a pas encore les droits de gestion. Demandez-les à NOVA Serenity.</p>
-        <Link to="/" className="mt-5 inline-flex h-12 items-center rounded-full border border-border px-6 font-semibold">Retour à l'application</Link>
-      </Centered>
-    );
+  }
   return (
     <AdminSiteProvider>
-      <AdminLayout />
+      <AdminFrame />
     </AdminSiteProvider>
   );
 }
 
-function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">{children}</div>;
-}
+function AdminFrame() {
+  const { isSuperAdmin } = useAuth();
+  const { site, sites, loading, selectSite } = useAdminSite();
+  const newMessages = useNewMessages(site?.id);
 
-function AdminLayout() {
-  const { sites, site, setSiteId } = useAdminSite();
-  const [open, setOpen] = useState(false);
-  const menu = (
-    <nav aria-label="Menu de gestion" className="space-y-1">
-      {nav.map(({ to, label, icon: Icon, ...rest }) => (
-        <Link
-          key={to}
-          to={to}
-          onClick={() => setOpen(false)}
-          activeOptions={{ exact: "exact" in rest }}
-          className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:bg-surface-high hover:text-foreground"
-          activeProps={{ className: "bg-primary/15 text-foreground font-semibold" }}
-        >
-          <Icon className="h-5 w-5" aria-hidden /> {label}
-        </Link>
-      ))}
-    </nav>
-  );
+  if (loading) return <div className="p-6"><Loading /></div>;
+  if (!site) {
+    return (
+      <div className="mx-auto max-w-md p-6">
+        <EmptyState>
+          <p className="font-semibold text-foreground">Accès réservé</p>
+          <p className="mt-1">Cet espace est réservé aux gestionnaires de site. Si vous pensez qu'il s'agit d'une erreur, contactez NOVA Serenity.</p>
+          <Link to="/" className="mt-4 inline-flex h-11 items-center rounded-full border border-border px-5 text-sm font-semibold">Retour à l'accueil</Link>
+        </EmptyState>
+      </div>
+    );
+  }
+
+  const items = nav.filter((n) => !n.superOnly || isSuperAdmin);
+  const badge = (to: AdminPath) => (to === "/admin/messages" && newMessages.data ? newMessages.data : 0);
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
-        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-full border border-border lg:hidden" aria-label="Ouvrir le menu" onClick={() => setOpen(true)}>
-          <Menu className="h-5 w-5" />
-        </button>
-        <img src={theme.logo} alt={theme.logoAlt} className="h-6 w-auto" />
-        <span className="hidden text-sm font-semibold text-brand-light sm:inline">Gestion</span>
-        {sites.length > 1 ? (
-          <select aria-label="Site géré" value={site?.id ?? ""} onChange={(e) => setSiteId(e.target.value)} className="ml-2 h-10 rounded-full border border-input bg-card px-3 text-sm font-semibold">
-            {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        ) : (
-          <span className="ml-2 text-sm font-semibold">{site?.name}</span>
-        )}
-        <Link to="/" className="ml-auto inline-flex h-10 items-center gap-2 rounded-full border border-border px-3 text-sm">
-          <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Voir l'application</span>
-        </Link>
-      </header>
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-background/80" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-border bg-card p-4">
-            <button type="button" className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-border" aria-label="Fermer le menu" onClick={() => setOpen(false)}>
-              <X className="h-5 w-5" />
-            </button>
-            {menu}
-          </div>
+      <a href="#admin-contenu" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
+        Aller au contenu
+      </a>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link to="/admin" className="flex shrink-0 items-center gap-3" aria-label="Tableau de bord">
+            <img src={site.logo_url || theme.logo} alt="" className="h-6 w-auto" />
+          </Link>
+          {sites.length > 1 ? (
+            <>
+              <label htmlFor="admin-site" className="sr-only">Site géré</label>
+              <select id="admin-site" value={site.id} onChange={(e) => selectSite(e.target.value)}
+                className="h-10 min-w-0 max-w-56 rounded-full border border-border bg-card px-3 text-sm font-semibold">
+                {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </>
+          ) : (
+            <span className="truncate text-sm font-semibold">Gestion · {site.name}</span>
+          )}
+          <Link to="/" className="ml-auto inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-border px-4 text-sm font-semibold">
+            <ExternalLink className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Voir le site</span><span className="sm:hidden">Site</span>
+          </Link>
         </div>
-      )}
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
-        <aside className="hidden w-60 shrink-0 lg:block"><div className="sticky top-20">{menu}</div></aside>
-        <main id="contenu" className="min-w-0 flex-1 pb-16">
-          {site ? <Outlet /> : <p className="text-muted-foreground">Aucun site associé à votre compte.</p>}
+        <nav aria-label="Modules de gestion" className="flex gap-2 overflow-x-auto px-4 pb-3 lg:hidden">
+          {items.map((n) => (
+            <Link key={n.to} to={n.to} activeOptions={{ exact: !!n.exact }}
+              className="h-10 shrink-0 rounded-full border border-border bg-card px-4 text-sm leading-10"
+              activeProps={{ className: "!bg-primary !border-primary text-primary-foreground font-semibold" }}>
+              {n.label}{badge(n.to) ? ` (${badge(n.to)})` : ""}
+            </Link>
+          ))}
+        </nav>
+      </header>
+      <div className="mx-auto flex max-w-7xl gap-8 px-4">
+        <nav aria-label="Modules de gestion" className="sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 overflow-y-auto py-6 lg:block">
+          <ul className="space-y-1">
+            {items.map(({ to, label, icon: Icon, exact, superOnly }, i) => (
+              <li key={to}>
+                {superOnly && !items[i - 1]?.superOnly && <p className="mb-1 mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">NOVA</p>}
+                <Link to={to} activeOptions={{ exact: !!exact }}
+                  className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:bg-card hover:text-foreground"
+                  activeProps={{ className: "!bg-primary/15 !text-foreground font-semibold" }}>
+                  <Icon className="h-4 w-4" aria-hidden /> {label}
+                  {!!badge(to) && <span className="ml-auto rounded-full bg-primary px-2 text-xs font-semibold text-primary-foreground">{badge(to)}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <main id="admin-contenu" className="min-w-0 flex-1 pb-16 pt-6">
+          <Outlet key={site.id} />
         </main>
       </div>
     </div>

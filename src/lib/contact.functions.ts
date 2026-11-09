@@ -14,7 +14,7 @@ export const sendContactMessage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: site } = await supabaseAdmin.from("sites").select("id").eq("slug", data.siteSlug).maybeSingle();
+    const { data: site } = await supabaseAdmin.from("sites").select("id, name, reception_email").eq("slug", data.siteSlug).maybeSingle();
     if (!site) throw new Error("Site introuvable");
 
     const since = new Date(Date.now() - 10 * 60_000).toISOString();
@@ -29,5 +29,16 @@ export const sendContactMessage = createServerFn({ method: "POST" })
       site_id: site.id, name: data.name, email: data.email, subject: data.subject, message: data.message,
     });
     if (error) throw new Error("Envoi impossible pour le moment.");
+
+    // Transmission à l'e-mail de l'accueil ; le message reste consultable dans le back-office si l'envoi échoue.
+    if (site.reception_email) {
+      const { sendEmail } = await import("./email.server");
+      await sendEmail({
+        to: [site.reception_email],
+        replyTo: data.email,
+        subject: `[${site.name}] ${data.subject}`,
+        text: `Message reçu depuis l'application ${site.name}.\n\nDe : ${data.name} <${data.email}>\nObjet : ${data.subject}\n\n${data.message}\n\nRépondez directement à cet e-mail pour écrire à l'expéditeur.`,
+      }).catch((e) => console.error("[contact] e-mail accueil non envoyé", e));
+    }
     return { ok: true };
   });

@@ -1,34 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { pageMeta } from "@/lib/meta";
-import { CrudPage } from "@/components/admin/CrudPage";
+import { newItemSearch, useAdminSiteId } from "@/lib/admin";
+import { CrudModule } from "@/components/admin/CrudModule";
+import { PageHeader } from "@/components/common";
 import { SafeHtml } from "./actualites.$id";
 
-export const Route = createFileRoute("/admin/vie")({
-  head: () => pageMeta("Gestion — Vie dans les bureaux", "Gérez les pages d'information pratiques du bâtiment."),
-  component: () => (
-    <CrudPage
-      table="building_info"
-      title="Vie dans les bureaux"
-      intro="Pages d'information libres : règles de vie, accès, tri des déchets, parking… Glissez pour changer l'ordre."
-      singular="cette page"
-      addLabel="Ajouter une page"
-      sortable
-      visibleToggle
-      searchKeys={["title", "content"]}
-      emptyText="Aucune page pour l'instant. Ajoutez la première, par exemple « Tri des déchets »."
-      primary={(r) => String(r["title"])}
-      defaults={{ title: "", content: "", visible: true }}
-      preview={(v) => (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <h3 className="text-lg font-semibold">{String(v["title"] || "Titre")}</h3>
-          <div className="mt-2"><SafeHtml html={String(v["content"] ?? "")} /></div>
-        </div>
-      )}
-      fields={[
-        { name: "title", label: "Titre", type: "text", required: true, placeholder: "Ex. Tri des déchets" },
-        { name: "content", label: "Contenu", type: "rich", required: true, placeholder: "Ex. Les poubelles jaunes sont au niveau -1…" },
-        { name: "visible", label: "Visible par les occupants", type: "switch" },
-      ]}
-    />
-  ),
-});
+export const Route = createFileRoute("/admin/vie")({ validateSearch: newItemSearch, component: AdminVie });
+
+function AdminVie() {
+  const siteId = useAdminSiteId();
+  const { nouveau } = Route.useSearch();
+  return (
+    <div>
+      <PageHeader title="Vie dans les bureaux" subtitle="Pages d'information libres : règles de vie, accès, tri des déchets…" />
+      <CrudModule
+        table="building_info" siteId={siteId} noun="cette page" addLabel="Ajouter une page"
+        emptyText="Aucune page pour l'instant. Ajoutez la première (ex. : Tri des déchets)."
+        autoOpenNew={!!nouveau}
+        orderable hideable
+        rowTitle={(r) => r["title"]}
+        preview={(v) => (
+          <div>
+            <h3 className="mb-2 font-semibold">{v["title"]}</h3>
+            <SafeHtml html={String(v["content"] ?? "")} />
+          </div>
+        )}
+        fields={[
+          { name: "title", label: "Titre", type: "text", required: true, placeholder: "Ex. : Tri des déchets" },
+          { name: "content", label: "Contenu", type: "richtext", required: true },
+          { name: "visible", label: "Visible par les occupants", type: "checkbox", defaultValue: true },
+        ]}
+      />
+    </div>
+  );
+}

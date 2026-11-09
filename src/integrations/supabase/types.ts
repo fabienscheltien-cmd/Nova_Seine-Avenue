@@ -207,6 +207,7 @@ export type Database = {
       }
       content_history: {
         Row: {
+          actor_email: string | null
           actor_id: string | null
           created_at: string
           entity: string
@@ -217,6 +218,7 @@ export type Database = {
           snapshot: Json
         }
         Insert: {
+          actor_email?: string | null
           actor_id?: string | null
           created_at?: string
           entity: string
@@ -227,6 +229,7 @@ export type Database = {
           snapshot: Json
         }
         Update: {
+          actor_email?: string | null
           actor_id?: string | null
           created_at?: string
           entity?: string
@@ -590,6 +593,38 @@ export type Database = {
           },
         ]
       }
+      media: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_url: string
+          id: string
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_url: string
+          id?: string
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_url?: string
+          id?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           category: string | null
@@ -875,6 +910,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_force_sign_out: { Args: { _user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
